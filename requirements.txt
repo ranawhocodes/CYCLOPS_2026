@@ -1,0 +1,38 @@
+# Single environment. The TRD splits geo and ML deps across conda and venv; the
+# MVP has no satpy/GDAL dependency yet, so one pip environment is simpler and
+# every teammate can reproduce it identically. Reinstate env/geo.yml when the
+# real INSAT/Digital Typhoon readers land.
+
+numpy>=1.26
+pandas>=2.2
+scipy>=1.13
+scikit-learn>=1.5
+lightgbm>=4.3
+pyproj>=3.6
+shapely>=2.0
+matplotlib>=3.9
+pillow>=10.4
+tqdm
+pyyaml
+joblib
+
+torch>=2.3
+torchvision>=0.18
+
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.8
+pydantic-settings>=2.4
+websockets>=12.0
+python-multipart>=0.0.9
+httpx>=0.27
+
+pytest>=8.0
+pytest-asyncio>=0.24
+
+# Optional — only needed for the WeatherNext 2 provider. Left uninstalled by
+# default so the demo has no cloud dependency; `pip install xarray zarr gcsfs`
+# once access is granted.
+# xarray>=2024.6
+# zarr>=2.17
+# gcsfs>=2024.6

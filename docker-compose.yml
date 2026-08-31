@@ -1,0 +1,40 @@
+# One-command startup.
+#
+# MVP scope: two services. The TRD specifies PostGIS and Redis as well, and the
+# schema is in doc 02 B7 — but the MVP's case store is in-memory over the real
+# IBTrACS file, so adding a database now would mean two more containers that
+# have to come up healthy before a demo, buying nothing this build uses.
+#
+# Both images bake in their artefacts. Nothing is fetched from the network at
+# demo time, which is the actual demo condition to assume.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    environment:
+      CYCLOPS_ENV_PROVIDER: auto      # falls back to climatology if no WeatherNext access
+    volumes:
+      - ./models:/app/models:ro
+      - ./artifacts:/app/artifacts:ro
+      - ./data/raw:/app/data/raw:ro
+    ports: ["8000:8000"]
+    healthcheck:
+      # `condition: service_healthy` below depends on this. Without it the
+      # console starts before the API can answer and the first load 404s while
+      # someone is watching.
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/v1/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  console:
+    build:
+      context: ./console
+      dockerfile: Dockerfile
+    depends_on:
+      api:
+        condition: service_healthy
+    ports: ["5173:80"]

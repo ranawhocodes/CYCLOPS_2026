@@ -1,0 +1,16 @@
+{
+  "radii_km": {
+    "6": 36.29,
+    "12": 73.18,
+    "18": 111.76,
+    "24": 158.35
+  },
+  "percentile": 67,
+  "calibrated_on": "validation seasons, storm-disjoint from test",
+  "measured_test_coverage": {
+    "6": 0.6886,
+    "12": 0.684,
+    "18": 0.6612,
+    "24": 0.6576
+  }
+}

@@ -1,0 +1,34 @@
+# Environments
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Runtime scratch
+.run/
+console/dist/
+
+# Data — regenerate with `make data`.
+# IBTrACS is a 27 MB public download; the built tensor set is ~725 MB.
+data/raw/
+data/processed/
+data/cases/
+
+# Model artefacts — regenerate with `make train` / `make onnx`.
+# The ONNX export is 46 MB and is derived from the checkpoint, so committing it
+# would put a large binary in history for something `make onnx` rebuilds in
+# seconds with verified numerical parity.
+models/*.pt
+models/*.joblib
+models/*.onnx
+models/*.onnx.data
+*.npz
+
+# Committed on purpose, because a fresh clone needs them and they are small:
+#   artifacts/                     metrics + figures every number traces to
+#   console/public/basemap/*.geojson  the offline basemap (~250 KB)
+#   models/cone_radii.json         calibrated radii + measured coverage
+#   models/climatology.json        fitted CLIPER table
+
+.DS_Store

@@ -1,0 +1,52 @@
+{
+  "storm": "Fani 2019",
+  "sid": "2019116N02090",
+  "n_fixes": 36,
+  "n_forecasts": 130,
+  "by_lead": {
+    "6": {
+      "n": 34,
+      "track_err_km_mean": 36.0,
+      "persistence_err_km_mean": 38.5,
+      "track_skill": 0.063,
+      "intensity_mae_kt": 3.6,
+      "persistence_mae_kt": 5.53,
+      "cone_coverage": 0.618,
+      "worst_track_err_km": 65.7,
+      "worst_at": "2019-04-27 12:00:00+00:00"
+    },
+    "12": {
+      "n": 33,
+      "track_err_km_mean": 63.9,
+      "persistence_err_km_mean": 74.2,
+      "track_skill": 0.139,
+      "intensity_mae_kt": 6.1,
+      "persistence_mae_kt": 11.24,
+      "cone_coverage": 0.606,
+      "worst_track_err_km": 149.5,
+      "worst_at": "2019-04-30 00:00:00+00:00"
+    },
+    "18": {
+      "n": 32,
+      "track_err_km_mean": 98.0,
+      "persistence_err_km_mean": 117.4,
+      "track_skill": 0.166,
+      "intensity_mae_kt": 8.55,
+      "persistence_mae_kt": 16.44,
+      "cone_coverage": 0.688,
+      "worst_track_err_km": 208.3,
+      "worst_at": "2019-04-30 00:00:00+00:00"
+    },
+    "24": {
+      "n": 31,
+      "track_err_km_mean": 135.2,
+      "persistence_err_km_mean": 163.9,
+      "track_skill": 0.175,
+      "intensity_mae_kt": 10.63,
+      "persistence_mae_kt": 21.16,
+      "cone_coverage": 0.613,
+      "worst_track_err_km": 279.0,
+      "worst_at": "2019-04-30 00:00:00+00:00"
+    }
+  }
+}
