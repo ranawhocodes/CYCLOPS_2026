@@ -78,6 +78,29 @@ button, select, input { font-family: inherit; font-size: inherit; color: inherit
 .maplibregl-ctrl-group button { filter: invert(0.86); }
 .maplibregl-ctrl-bottom-right { margin-bottom: 96px; }
 
+/* ---------- map failure diagnostic ---------- */
+/* Shown only when the map genuinely failed. A blank rectangle that explains
+   itself beats a blank rectangle that does not. */
+.map-status {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 20; max-width: 440px; padding: 18px 20px;
+  background: rgba(10, 20, 28, 0.94);
+  border: 1px solid var(--bd-amber); border-radius: var(--radius);
+  box-shadow: var(--shadow); text-align: left;
+}
+.map-status h2 {
+  margin: 0 0 8px; font-size: 13px; color: var(--bd-amber);
+  letter-spacing: 0.04em;
+}
+.map-status p { margin: 0 0 8px; font-size: 11.5px; line-height: 1.55; color: var(--ink); }
+.map-status-fix {
+  font-family: var(--mono); font-size: 11px !important; color: var(--bd-cyan) !important;
+}
+.map-status-note {
+  color: var(--dim) !important; font-size: 10.5px !important;
+  border-top: 1px solid var(--rule); padding-top: 8px; margin-bottom: 0 !important;
+}
+
 /* ---------- floating chrome ---------- */
 .hud {
   position: absolute;

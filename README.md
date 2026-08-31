@@ -152,7 +152,7 @@ synthetic store. It has **not** been validated against the real archive. Say
 make setup      # venv + npm install
 make data       # download IBTrACS, build the dataset
 make train      # nowcast + intensity ablation
-make demo       # API on :8000, console on :5173
+make demo       # API on :8000, console on :5180
 ```
 
 Then open **<http://localhost:5180>**. The console opens on a cyclone already

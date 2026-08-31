@@ -4,6 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useStore } from "../store";
 import { catColor } from "../lib/imd";
 import { WindParticles } from "./WindParticles";
+import { MapStatus } from "./MapStatus";
 
 /**
  * Full-bleed map.
@@ -61,6 +62,8 @@ export function MapView() {
   const ref = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const [ready, setReady] = useState(false);
+  // State, not just the ref, so MapStatus re-runs its checks once the map exists.
+  const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
   const followed = useRef<string | null>(null);
 
   const observed = useStore((s) => s.observed);
@@ -154,10 +157,12 @@ export function MapView() {
     ro.observe(ref.current);
 
     map.current = m;
+    setMapInstance(m);
     return () => {
       ro.disconnect();
       m.remove();
       map.current = null;
+      setMapInstance(null);
       setReady(false);
     };
   }, []);
@@ -290,7 +295,8 @@ export function MapView() {
     <div className="map-root">
       <div ref={ref} className="map" role="img"
            aria-label="Cyclone track map with satellite imagery, forecast and uncertainty cone" />
-      <WindParticles map={map.current} grid={windGrid} visible={layers.wind} />
+      <WindParticles map={mapInstance} grid={windGrid} visible={layers.wind} />
+      <MapStatus map={mapInstance} />
     </div>
   );
 }

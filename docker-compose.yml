@@ -37,4 +37,4 @@ services:
     depends_on:
       api:
         condition: service_healthy
-    ports: ["5173:80"]
+    ports: ["5180:80"]
