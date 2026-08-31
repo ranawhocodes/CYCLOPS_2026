@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request, Response
 
+from cyclops.geo import wind_grid_payload
+
 from ._timeparse import parse_iso
 
 router = APIRouter(tags=["cases"])
@@ -41,14 +43,55 @@ async def case_track(case_id: str, request: Request, until: str | None = None):
 
 
 @router.get("/cases/{case_id}/frames/{ts}")
-async def case_frame(case_id: str, ts: str, request: Request):
-    """Rendered infrared frame as a PNG."""
+async def case_frame(case_id: str, ts: str, request: Request,
+                     georef: bool = False):
+    """
+    Rendered infrared frame as a PNG.
+
+    `georef=1` returns an RGBA version with clear air transparent, for draping
+    on the map. The opaque version is what the explainability panel shows,
+    because the Grad-CAM overlay needs an opaque base to blend against.
+    """
     st = request.app.state
     try:
         scene = st.store.scene(case_id, parse_iso(ts))
     except KeyError:
         raise HTTPException(404, f"no frame for {case_id} at {ts}")
-    png = st.engine.frame_png(scene["tensors"]["ir"][0])
+    ir0 = scene["tensors"]["ir"][0]
+    png = (st.engine.frame_png_georef(ir0) if georef
+           else st.engine.frame_png(ir0))
     return Response(png, media_type="image/png",
                     headers={"Cache-Control": "public, max-age=3600",
                              "X-Data-Status": "SYNTHETIC"})
+
+
+@router.get("/cases/{case_id}/wind/{ts}")
+async def case_wind(case_id: str, ts: str, request: Request):
+    """
+    Scatterometer wind field as a compact grid, for the animated flow layer.
+
+    Cells outside the swath or flagged for rain come back null, so the console
+    shows coverage gaps rather than interpolating across them. Returns
+    `available: false` when there is no coincident pass -- which is most
+    timesteps, and the console says so rather than animating stale motion.
+    """
+    st = request.app.state
+    try:
+        scene = st.store.scene(case_id, parse_iso(ts))
+    except KeyError:
+        raise HTTPException(404, f"no frame for {case_id} at {ts}")
+
+    w = scene["wind"]
+    row = scene["row"]
+    if w.get("mask") is None:
+        return {"available": False,
+                "reason": "no coincident scatterometer pass at this time",
+                "centre": {"lat": float(row.lat), "lon": float(row.lon)}}
+
+    grid = wind_grid_payload(w["u10"], w["v10"], w["mask"],
+                             float(row.lat), float(row.lon))
+    grid["available"] = True
+    grid["source"] = (scene["provenance"]["wind"] or {}).get("source", "unknown")
+    grid["age_min"] = (scene["provenance"]["wind"] or {}).get("age_min")
+    grid["centre"] = {"lat": float(row.lat), "lon": float(row.lon)}
+    return grid

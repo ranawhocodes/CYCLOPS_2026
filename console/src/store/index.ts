@@ -1,5 +1,15 @@
 import { create } from "zustand";
-import type { Alert, Case, Classify, Nowcast, ReplayState, TrackPoint } from "../api/client";
+import type {
+  Alert, Case, Classify, Nowcast, ReplayState, TrackPoint, WindGrid,
+} from "../api/client";
+
+export interface LayerToggles {
+  satellite: boolean;
+  wind: boolean;
+  cone: boolean;
+  forecast: boolean;
+  track: boolean;
+}
 
 export type Conn = "live" | "connecting" | "reconnecting" | "offline";
 
@@ -12,6 +22,11 @@ interface State {
 
   stormClock: string | null;
   frameUrl: string | null;
+  georefUrl: string | null;
+  windGrid: WindGrid | null;
+  layers: LayerToggles;
+  railOpen: boolean;
+  chartOpen: boolean;
   classify: Classify | null;
   nowcast: Nowcast | null;
   observed: TrackPoint[];
@@ -34,6 +49,10 @@ interface State {
   setShowCam: (v: boolean) => void;
   setCamOpacity: (v: number) => void;
   setShowMetrics: (v: boolean) => void;
+  setWindGrid: (g: WindGrid | null) => void;
+  toggleLayer: (k: keyof LayerToggles) => void;
+  setRailOpen: (v: boolean) => void;
+  setChartOpen: (v: boolean) => void;
 }
 
 export const useStore = create<State>((set, get) => ({
@@ -44,6 +63,11 @@ export const useStore = create<State>((set, get) => ({
   replay: null,
   stormClock: null,
   frameUrl: null,
+  georefUrl: null,
+  windGrid: null,
+  layers: { satellite: true, wind: true, cone: true, forecast: true, track: true },
+  railOpen: true,
+  chartOpen: true,
   classify: null,
   nowcast: null,
   observed: [],
@@ -61,14 +85,16 @@ export const useStore = create<State>((set, get) => ({
   setReplay: (replay) => set({ replay }),
   resetCase: () =>
     set({
-      stormClock: null, frameUrl: null, classify: null, nowcast: null,
+      stormClock: null, frameUrl: null, georefUrl: null, windGrid: null,
+      classify: null, nowcast: null,
       observed: [], truthNow: null, alerts: [], history: [], replay: null,
     }),
 
   applyMessage: (m) => {
     switch (m.type) {
       case "frame":
-        set({ frameUrl: m.image_url, stormClock: m.storm_clock });
+        set({ frameUrl: m.image_url, georefUrl: m.georef_url ?? null,
+              stormClock: m.storm_clock });
         set((s) => ({ replay: s.replay ? { ...s.replay, idx: m.idx } : s.replay }));
         break;
       case "prediction":
@@ -109,6 +135,10 @@ export const useStore = create<State>((set, get) => ({
   setShowCam: (showCam) => set({ showCam }),
   setCamOpacity: (camOpacity) => set({ camOpacity }),
   setShowMetrics: (showMetrics) => set({ showMetrics }),
+  setWindGrid: (windGrid) => set({ windGrid }),
+  toggleLayer: (k) => set((s) => ({ layers: { ...s.layers, [k]: !s.layers[k] } })),
+  setRailOpen: (railOpen) => set({ railOpen }),
+  setChartOpen: (chartOpen) => set({ chartOpen }),
 }));
 
 

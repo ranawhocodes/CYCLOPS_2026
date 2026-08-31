@@ -20,6 +20,43 @@ def test_imd_category_boundaries(kt, expected):
     assert to_imd_category(kt) == expected
 
 
+def test_category_mapping_is_total_over_fractional_winds():
+    """
+    Regression: the published IMD table is in whole knots (D 17-27, DD 28-33),
+    so an inclusive `lo <= kt <= hi` test left gaps. A regressed wind of 27.5 kt
+    matched no band and fell through to the final return, labelling a depression
+    'SuCS' — the most extreme category on the scale — in the live console.
+
+    The model emits continuous knots, so it lands between integer bounds
+    constantly. Every finite wind must map to exactly one category.
+    """
+    valid = {"LOW", "D", "DD", "CS", "SCS", "VSCS", "ESCS", "SuCS"}
+    for kt in np.arange(0.0, 200.0, 0.1):
+        assert to_imd_category(float(kt)) in valid, f"{kt} kt mapped outside the scale"
+
+    # The specific failure: nothing below the SuCS threshold may be called SuCS.
+    for kt in np.arange(0.0, 119.9, 0.1):
+        assert to_imd_category(float(kt)) != "SuCS", \
+            f"{kt} kt mislabelled as Super Cyclonic Storm"
+
+    # And the boundaries land on the correct side.
+    assert to_imd_category(27.5) == "D"
+    assert to_imd_category(27.9) == "D"
+    assert to_imd_category(28.0) == "DD"
+    assert to_imd_category(119.9) == "ESCS"
+    assert to_imd_category(120.0) == "SuCS"
+
+
+def test_category_mapping_is_monotonic():
+    """A stronger wind can never map to a weaker category."""
+    order = ["LOW", "D", "DD", "CS", "SCS", "VSCS", "ESCS", "SuCS"]
+    prev = -1
+    for kt in np.arange(0.0, 200.0, 0.5):
+        i = order.index(to_imd_category(float(kt)))
+        assert i >= prev, f"category went backwards at {kt} kt"
+        prev = i
+
+
 def test_wind_convention_conversion():
     """
     IMD reports 3-minute sustained; JTWC reports 1-minute. Presenting USA_WIND

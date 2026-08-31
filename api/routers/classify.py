@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
+from cyclops.geo import patch_corners
+
 from ._timeparse import parse_iso
 
 router = APIRouter(tags=["inference"])
@@ -32,6 +34,8 @@ async def classify(req: ClassifyRequest, request: Request):
                              category_hint=scene["row"].imd_category)
     out["provenance"] = scene["provenance"]
     out["centre"] = {"lat": float(scene["row"].lat), "lon": float(scene["row"].lon)}
+    out["frame_corners"] = patch_corners(float(scene["row"].lat),
+                                         float(scene["row"].lon))
     out["truth"] = {"wind_kt": float(scene["row"].wind_kt_3min),
                     "imd_category": scene["row"].imd_category,
                     "source": scene["row"].wind_source}

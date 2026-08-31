@@ -23,6 +23,8 @@ from datetime import datetime
 
 import pandas as pd
 
+from cyclops.geo import patch_corners
+
 
 @dataclass
 class ReplaySession:
@@ -80,12 +82,15 @@ class ReplayManager:
 
                 ts = s.timestamps[s.idx]
                 payload = self.compute_at(s.case_id, ts)
-                await self._broadcast(s, {"type": "frame", "ts": ts.isoformat(),
-                                          "storm_clock": ts.isoformat(),
-                                          "idx": s.idx, "n_frames": len(s.timestamps),
-                                          "image_url":
-                                              f"/v1/cases/{s.case_id}/frames/"
-                                              f"{ts.isoformat()}"})
+                await self._broadcast(s, {
+                    "type": "frame", "ts": ts.isoformat(),
+                    "storm_clock": ts.isoformat(),
+                    "idx": s.idx, "n_frames": len(s.timestamps),
+                    "image_url": f"/v1/cases/{s.case_id}/frames/{ts.isoformat()}",
+                    "georef_url": (f"/v1/cases/{s.case_id}/frames/"
+                                   f"{ts.isoformat()}?georef=1"),
+                    "wind_url": f"/v1/cases/{s.case_id}/wind/{ts.isoformat()}",
+                })
                 await self._broadcast(s, {"type": "prediction", **payload})
                 for a in payload.get("alerts", []):
                     await self._broadcast(s, {"type": "alert", **a})
@@ -121,6 +126,10 @@ class ReplayManager:
         classify["provenance"] = scene["provenance"]
         classify["centre"] = {"lat": float(scene["row"].lat),
                               "lon": float(scene["row"].lon)}
+        # Corners of the storm-centred patch, so the console can drape the
+        # frame in its true geographic position instead of guessing an extent.
+        classify["frame_corners"] = patch_corners(float(scene["row"].lat),
+                                                  float(scene["row"].lon))
 
         nowcast = self.engine.forecast(history)
         alerts = self.alerts.check(history)

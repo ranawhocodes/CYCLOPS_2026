@@ -24,7 +24,8 @@ from cyclops.domain.imd import (CATEGORY_LABEL, to_imd_category,  # noqa: E402
                                 wind_to_t_number)
 from cyclops.eval.baselines import persistence_forecast  # noqa: E402
 from cyclops.eval.cone import cone_polygon  # noqa: E402
-from cyclops.models.cam import EXPECTED_CAM_FOCUS, IntensityCAM, frame_png, overlay_png  # noqa: E402
+from cyclops.models.cam import (EXPECTED_CAM_FOCUS, IntensityCAM,  # noqa: E402
+                                frame_png, frame_png_georef, overlay_png)
 from cyclops.models.fusion import CyclopsFusion  # noqa: E402
 from cyclops.models.nowcast_gbm import NowcastGBM  # noqa: E402
 
@@ -171,6 +172,9 @@ class InferenceEngine:
 
     def frame_png(self, ir_channel0: np.ndarray) -> bytes:
         return frame_png(np.asarray(ir_channel0))
+
+    def frame_png_georef(self, ir_channel0: np.ndarray) -> bytes:
+        return frame_png_georef(np.asarray(ir_channel0))
 
     # -- nowcast -----------------------------------------------------------
     def forecast(self, history: pd.DataFrame) -> dict:

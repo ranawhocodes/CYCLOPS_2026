@@ -63,6 +63,7 @@ onnx:  ## export the intensity model to ONNX and verify parity
 .PHONY: test
 test:  ## run the protective tests
 	PYTHONPATH=src:. .venv/bin/python -m pytest tests -q
+	@$(MAKE) --no-print-directory validate-map
 
 .PHONY: test-critical
 test-critical:  ## run only the three tests that protect credibility
@@ -94,6 +95,10 @@ stop:  ## stop anything started by `make demo`
 .PHONY: smoke
 smoke:  ## verify a running stack end to end
 	@bash scripts/smoke.sh
+
+.PHONY: validate-map
+validate-map:  ## validate the map style + bundled basemap without a browser
+	cd console && npm run validate:map
 
 .PHONY: offline-check
 offline-check:  ## assert the console makes no external network requests

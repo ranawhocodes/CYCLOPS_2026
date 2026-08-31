@@ -172,6 +172,32 @@ make smoke
 
 ---
 
+## The console
+
+The map is the page: full-bleed, with every panel floating over it as
+translucent chrome — the layout language of zoom.earth and
+earth.nullschool.net, chosen because the subject of the screen is a cyclone,
+not a dashboard.
+
+| Layer | What it is |
+|---|---|
+| Basemap | Clipped Natural Earth extract, bundled (~250 KB). No tile server, no token, no network. |
+| Infrared imagery | The IR frame draped in its true geographic position, with clear air transparent so the coast and track show through. |
+| Surface wind flow | Particles advected through the scatterometer retrieval. Stops at the swath edge and respawns in rain-flagged cells, so coverage gaps stay visible as gaps rather than being interpolated over. |
+| Track, forecast, cone | Observed solid, forecast dashed in a different hue, cone translucent. |
+
+The timeline strip is tinted by IMD category across the part of the storm already
+revealed, and is built from the track the replay has released — the console never
+requests data past the storm clock, so the network tab shows no future-looking
+request either.
+
+`make validate-map` checks the style and the bundled basemap in Node. MapLibre
+only reports a bad style once something paints, which means a headless CI box or
+a hidden tab renders an empty map with no error at all — this catches it at build
+time instead. It was written after exactly that bug: a style key set to
+`undefined` passes a truthiness check, fails MapLibre's validator, and leaves a
+blank map behind.
+
 ## The three protective tests
 
 These exist because each one guards a claim that, if false, ends the submission.

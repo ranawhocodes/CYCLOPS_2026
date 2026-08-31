@@ -66,7 +66,7 @@ def overlay_png(ir_norm: np.ndarray, heat: np.ndarray, alpha: float = 0.55) -> b
 
 
 def frame_png(ir_norm: np.ndarray, colormap: str = "bone") -> bytes:
-    """Render a normalised IR channel as a standalone PNG for the console."""
+    """Render a normalised IR channel as an opaque PNG (panel view)."""
     import matplotlib as mpl
     from PIL import Image
 
@@ -76,6 +76,42 @@ def frame_png(ir_norm: np.ndarray, colormap: str = "bone") -> bytes:
     img = (cmap(np.clip(ir_norm, 0, 1))[..., :3] * 255).astype(np.uint8)
     buf = io.BytesIO()
     Image.fromarray(img).save(buf, "PNG", optimize=True)
+    return buf.getvalue()
+
+
+def frame_png_georef(ir_norm: np.ndarray, floor: float = 0.30,
+                     gamma: float = 0.85) -> bytes:
+    """
+    Render the IR channel for draping on the map, with an alpha channel.
+
+    Clear air must be transparent so the coastline and track show through --
+    an opaque square of imagery sitting on the basemap reads as a UI artefact,
+    whereas cloud that fades into the ocean reads as a satellite image. This is
+    what geostationary imagery looks like on an operational display.
+
+    `floor` is the normalised brightness below which a pixel is treated as
+    cloud-free. `ir_norm` maps cold high, so low values are warm sea surface.
+    Alpha ramps from there rather than stepping, otherwise the cloud edge gets a
+    hard rectangle-ish boundary where the CDO fades out.
+    """
+    from PIL import Image
+
+    x = np.clip(np.asarray(ir_norm, dtype=np.float32), 0.0, 1.0)
+    alpha = np.clip((x - floor) / max(1e-6, 1.0 - floor), 0.0, 1.0) ** gamma
+
+    # Cold cloud tops render near-white, warmer mid-level cloud picks up the
+    # console's cyan so the overlay sits in the same palette as everything else.
+    cold = np.stack([np.full_like(x, 0.95), np.full_like(x, 0.98),
+                     np.full_like(x, 1.00)], axis=-1)
+    warm = np.stack([np.full_like(x, 0.42), np.full_like(x, 0.68),
+                     np.full_like(x, 0.82)], axis=-1)
+    t = np.clip((x - floor) / max(1e-6, 1.0 - floor), 0.0, 1.0)[..., None]
+    rgb = (warm * (1.0 - t) + cold * t)
+
+    rgba = np.concatenate([rgb, alpha[..., None]], axis=-1)
+    img = (np.clip(rgba, 0, 1) * 255).astype(np.uint8)
+    buf = io.BytesIO()
+    Image.fromarray(img, mode="RGBA").save(buf, "PNG", optimize=True)
     return buf.getvalue()
 
 

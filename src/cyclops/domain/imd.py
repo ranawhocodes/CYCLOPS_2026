@@ -67,13 +67,34 @@ CATEGORY_COLOR: dict[str, str] = {
 
 
 def to_imd_category(kt_3min: float) -> str:
-    """Map a 3-minute sustained wind in knots to its IMD category abbreviation."""
-    if kt_3min is None or (isinstance(kt_3min, float) and np.isnan(kt_3min)):
+    """
+    Map a 3-minute sustained wind in knots to its IMD category abbreviation.
+
+    The published table is written in whole knots (D is 17-27, DD is 28-33), so
+    a naive `lo <= kt <= hi` test leaves gaps: 27.5 kt matches no band. A model
+    that regresses a continuous wind speed lands in those gaps constantly, and a
+    fallthrough return would mislabel a depression as the most extreme category
+    on the scale.
+
+    The bands are therefore treated as half-open — D is [17, 28), DD is [28, 34)
+    and so on — by walking up the scale and keeping the highest band entered.
+    That is how the integer table is meant to be read, and it is total: every
+    finite wind speed maps to exactly one category.
+    """
+    if kt_3min is None:
         return "LOW"
-    for abbr, _, lo, hi in IMD_SCALE:
-        if lo <= kt_3min <= hi:
-            return abbr
-    return "SuCS"
+    try:
+        kt = float(kt_3min)
+    except (TypeError, ValueError):
+        return "LOW"
+    if np.isnan(kt):
+        return "LOW"
+
+    cat = "LOW"
+    for abbr, _, lo, _hi in IMD_SCALE:
+        if kt >= lo:
+            cat = abbr
+    return cat
 
 
 def to_imd_category_array(kt_3min: np.ndarray) -> np.ndarray:

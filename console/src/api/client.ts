@@ -26,6 +26,9 @@ export interface Classify {
   cam?: { format: string; data: string; opacity_hint: number; expected_focus: string; note: string };
   provenance: Provenance;
   centre: { lat: number; lon: number };
+  // Corners of the storm-centred patch, so the console can drape the frame in
+  // its true geographic position rather than guessing an extent.
+  frame_corners?: [number, number][];
   truth?: { wind_kt: number; imd_category: string; source: string };
 }
 
@@ -56,6 +59,20 @@ export interface Alert {
   kind: string; severity: string; ts: string; message: string;
 }
 
+export interface WindGrid {
+  available: boolean;
+  nx: number;
+  ny: number;
+  bbox: { west: number; east: number; south: number; north: number };
+  u: (number | null)[];
+  v: (number | null)[];
+  max_speed_ms: number;
+  coverage: number;
+  source?: string;
+  age_min?: number | null;
+  reason?: string;
+}
+
 export interface ReplayState {
   session_id: string; case_id: string; idx: number; n_frames: number;
   speed: number; paused: boolean; finished: boolean; storm_clock: string;
@@ -79,6 +96,10 @@ export const api = {
     ),
   frameUrl: (id: string, ts: string) =>
     `/v1/cases/${id}/frames/${encodeURIComponent(ts)}`,
+  georefUrl: (id: string, ts: string) =>
+    `/v1/cases/${id}/frames/${encodeURIComponent(ts)}?georef=1`,
+  wind: (id: string, ts: string) =>
+    j<WindGrid>(`/v1/cases/${id}/wind/${encodeURIComponent(ts)}`),
   startReplay: (id: string, speed: number) =>
     j<ReplayState>(`/v1/replay/${id}/start`, {
       method: "POST", body: JSON.stringify({ speed }),

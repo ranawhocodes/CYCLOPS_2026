@@ -32,3 +32,6 @@ models/*.onnx.data
 #   models/climatology.json        fitted CLIPER table
 
 .DS_Store
+
+# TypeScript incremental build cache — regenerated on every build
+console/tsconfig.tsbuildinfo

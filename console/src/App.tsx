@@ -9,9 +9,10 @@ import { ProvenancePanel } from "./components/ProvenancePanel";
 import { AlertFeed } from "./components/AlertFeed";
 import { IntensityChart } from "./components/IntensityChart";
 import { ForecastTable } from "./components/ForecastTable";
-import { ReplayControls } from "./components/ReplayControls";
+import { Timeline } from "./components/Timeline";
 import { MetricsView } from "./components/MetricsView";
 import { CasePicker } from "./components/CasePicker";
+import { LayerControl } from "./components/LayerControl";
 
 const DISCLAIMER =
   "Decision-support aid. Not a substitute for IMD operational warnings.";
@@ -20,6 +21,8 @@ export default function App() {
   const {
     cases, setCases, setHealth, health, activeCase, setActiveCase,
     replay, setReplay, resetCase, setShowMetrics,
+    railOpen, setRailOpen, chartOpen, setChartOpen,
+    stormClock, setWindGrid,
   } = useStore();
 
   useLiveSocket(replay?.session_id ?? null);
@@ -28,6 +31,18 @@ export default function App() {
     api.health().then(setHealth).catch(() => {});
     api.cases().then(setCases).catch(() => {});
   }, [setHealth, setCases]);
+
+  // Pull the wind field for the current frame. Kept out of the replay payload
+  // because it is ~10 KB of grid per step and only the particle layer wants it;
+  // fetching it separately keeps the WebSocket messages small.
+  useEffect(() => {
+    if (!activeCase || !stormClock) return;
+    let cancelled = false;
+    api.wind(activeCase.id, stormClock)
+      .then((g) => { if (!cancelled) setWindGrid(g.available ? g : null); })
+      .catch(() => { if (!cancelled) setWindGrid(null); });
+    return () => { cancelled = true; };
+  }, [activeCase, stormClock, setWindGrid]);
 
   const start = useCallback(
     async (caseId: string) => {
@@ -51,51 +66,75 @@ export default function App() {
 
   return (
     <div className="app">
-      <header className="topbar">
+      {/* The map is the page. Everything else floats over it. */}
+      <MapView />
+
+      <header className="hud hud-top">
         <div className="brand">
           <span className="logo" aria-hidden>◎</span>
-          <div>
+          <div className="brand-text">
             <h1>CYCLOPS</h1>
-            <p>Cyclone Observation, Prediction &amp; Explainability System</p>
+            <p>North Indian Ocean · nowcast &amp; explainability</p>
           </div>
         </div>
 
         <CasePicker onSelect={start} />
 
-        <div className="topbar-actions">
-          <button className="btn" onClick={() => setShowMetrics(true)}>
-            Performance
+        <div className="hud-actions">
+          <LayerControl />
+          <button className="icon-btn" onClick={() => setShowMetrics(true)}
+                  title="Performance against baselines" aria-label="Performance">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path d="M2 13V7M6 13V3M10 13V9M14 13V5" stroke="currentColor"
+                    strokeWidth="1.6" strokeLinecap="round" />
+            </svg>
           </button>
-          <a className="btn" href="/v1/docs" target="_blank" rel="noreferrer">API</a>
+          <a className="icon-btn" href="/v1/docs" target="_blank" rel="noreferrer"
+             title="OpenAPI docs" aria-label="API documentation">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path d="M6 3 2.5 8 6 13M10 3l3.5 5L10 13" stroke="currentColor"
+                    strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </a>
+          <button className="icon-btn" onClick={() => setRailOpen(!railOpen)}
+                  aria-pressed={railOpen} title={railOpen ? "Hide panels" : "Show panels"}
+                  aria-label={railOpen ? "Hide panels" : "Show panels"}>
+            {railOpen ? "⟩" : "⟨"}
+          </button>
         </div>
       </header>
 
-      <ReplayControls />
-
-      <main className="grid">
-        <div className="col-map">
-          <MapView />
-          <div className="row-wide">
-            <IntensityChart />
-            <ForecastTable />
-          </div>
-        </div>
-
-        <aside className="col-side">
+      {railOpen && (
+        <aside className="hud rail" aria-label="Analysis panels">
           <IntensityPanel />
           <CamViewer />
           <ProvenancePanel />
           <AlertFeed />
         </aside>
-      </main>
+      )}
 
-      <footer className="disclaimer">
+      <div className={`hud dock ${chartOpen ? "" : "collapsed"}`}>
+        <button className="dock-toggle" onClick={() => setChartOpen(!chartOpen)}
+                aria-expanded={chartOpen}>
+          {chartOpen ? "▾" : "▴"} Intensity &amp; nowcast
+        </button>
+        {chartOpen && (
+          <div className="dock-body">
+            <IntensityChart />
+            <ForecastTable />
+          </div>
+        )}
+      </div>
+
+      <Timeline />
+
+      <footer className="hud disclaimer">
         <span className="warn" aria-hidden>⚠</span>
         <span>{DISCLAIMER}</span>
         {synthetic && (
           <span className="synthetic-banner">
-            MVP build: best-track positions and intensity labels are real
-            (IBTrACS, IMD 3-min convention); satellite imagery is synthetic.
+            MVP: best-track positions and intensity labels are real (IBTrACS,
+            IMD 3-min); satellite imagery is synthetic.
           </span>
         )}
       </footer>

@@ -1,152 +1,224 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useStore } from "../store";
 import { catColor } from "../lib/imd";
+import { WindParticles } from "./WindParticles";
 
 /**
- * Fully offline map.
+ * Full-bleed map.
  *
- * No tile server, no access token, no network call. The land and boundary
- * geometry is a clipped Natural Earth extract bundled with the app (~250 KB).
- * A Mapbox token would mean a network call, and a venue with a captive portal
- * would leave a grey rectangle on screen in front of judges with nothing to be
- * done about it in the moment.
+ * No tile server, no access token, no network call. Land and boundary geometry
+ * is a clipped Natural Earth extract bundled with the app (~250 KB). A Mapbox
+ * token would mean a network call, and a venue behind a captive portal would
+ * leave a grey rectangle on screen with nothing to be done in the moment.
+ *
+ * Layer order, bottom to top: ocean, land, coast, boundaries, IR imagery, cone,
+ * tracks, points, wind particles (separate canvas). Imagery sits under the
+ * vector layers so the track stays readable over bright cloud.
  */
-// A FUNCTION, not a shared constant. MapLibre mutates the style object it is
-// handed — it attaches internal state during load. React StrictMode mounts,
-// unmounts and remounts in development, so a module-level constant would be
-// passed to the second map already consumed by the first, and that map's style
-// never finishes loading: no error, no layers, just a blank canvas. Every map
-// gets its own object.
-const makeStyle = (): maplibregl.StyleSpecification => ({
+// No `glyphs` key at all: MapLibre validates it as a string when present, and
+// an explicit `undefined` fails the check. There are no symbol layers here, so
+// no glyph source is needed — which also means no font fetch, keeping the map
+// fully offline.
+const STYLE: maplibregl.StyleSpecification = {
   version: 8,
-  // No `glyphs` key at all. MapLibre validates the style and rejects an
-  // explicit `undefined`; omitting it is correct because none of the layers
-  // below render text, so no font stack is ever needed. Keeping it out also
-  // means no glyph server to reach — part of staying fully offline.
   sources: {
     land: { type: "geojson", data: "/basemap/nio-land.geojson" },
     bounds: { type: "geojson", data: "/basemap/nio-boundaries.geojson" },
   },
   layers: [
-    { id: "ocean", type: "background", paint: { "background-color": "#071018" } },
-    { id: "land", type: "fill", source: "land",
-      paint: { "fill-color": "#0E1B26", "fill-outline-color": "#22384A" } },
-    { id: "coast", type: "line", source: "land",
-      paint: { "line-color": "#2A4457", "line-width": 0.9 } },
-    { id: "bounds", type: "line", source: "bounds",
-      paint: { "line-color": "#22384A", "line-width": 0.6, "line-dasharray": [3, 2] } },
+    { id: "ocean", type: "background", paint: { "background-color": "#04090f" } },
+    {
+      id: "land",
+      type: "fill",
+      source: "land",
+      paint: { "fill-color": "#0c1620", "fill-outline-color": "#1d3040" },
+    },
+    {
+      id: "coast",
+      type: "line",
+      source: "land",
+      paint: { "line-color": "#2f4d63", "line-width": 0.9 },
+    },
+    {
+      id: "bounds",
+      type: "line",
+      source: "bounds",
+      paint: { "line-color": "#1d3040", "line-width": 0.6, "line-dasharray": [3, 2] },
+    },
   ],
-});
+};
 
-// Same reasoning as makeStyle: a fresh object per call, never a shared literal
-// handed repeatedly to MapLibre sources.
-const empty = (): GeoJSON.FeatureCollection => ({ type: "FeatureCollection", features: [] });
+const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
+// A 1x1 transparent pixel, so the imagery source exists from map load and each
+// new frame is an updateImage() rather than an addSource/removeSource cycle --
+// which would flash on every replay step.
+const BLANK =
+  "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 
 export function MapView() {
   const ref = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const ready = useRef(false);
+  const [ready, setReady] = useState(false);
+  const followed = useRef<string | null>(null);
 
   const observed = useStore((s) => s.observed);
   const nowcast = useStore((s) => s.nowcast);
   const classify = useStore((s) => s.classify);
-  const redraw = useRef<(() => void) | null>(null);
-  // Once the presenter pans or zooms deliberately, stop auto-fitting the view —
-  // fighting the user for control of the camera mid-demo looks broken.
-  const userMoved = useRef(false);
+  const georefUrl = useStore((s) => s.georefUrl);
+  const windGrid = useStore((s) => s.windGrid);
+  const layers = useStore((s) => s.layers);
+  const activeCase = useStore((s) => s.activeCase);
 
   useEffect(() => {
     if (!ref.current || map.current) return;
     const m = new maplibregl.Map({
       container: ref.current,
-      style: makeStyle(),
-      center: [85, 15],
-      zoom: 3.6,
+      style: STYLE,
+      center: [86, 15],
+      zoom: 4.2,
       attributionControl: false,
       dragRotate: false,
+      maxZoom: 9,
+      minZoom: 2.5,
     });
-    m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    // Dev-only handle, set immediately rather than inside `load`, so a style
-    // that fails to load can still be inspected from the browser console.
-    if (import.meta.env.DEV) (window as any).__cyclopsMap = m;
-    m.on("error", (e: any) => console.error("[maplibre]", e?.error?.message ?? e));
-    m.on("dragstart", () => { userMoved.current = true; });
-    m.on("zoomstart", (e: any) => { if (e.originalEvent) userMoved.current = true; });
-    m.on("load", () => {
-      // Cone first so tracks and markers draw over it.
-      m.addSource("cone", { type: "geojson", data: empty() });
-      m.addLayer({ id: "cone-fill", type: "fill", source: "cone",
-        paint: { "fill-color": "#35C4E8", "fill-opacity": 0.15 } });
-      m.addLayer({ id: "cone-line", type: "line", source: "cone",
-        paint: { "line-color": "#35C4E8", "line-opacity": 0.5, "line-width": 1.2 } });
+    m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
 
-      m.addSource("observed", { type: "geojson", data: empty() });
+    m.on("load", () => {
+      m.addSource("ir", { type: "image", url: BLANK, coordinates: [
+        [80, 20], [90, 20], [90, 10], [80, 10],
+      ] });
+      m.addLayer({
+        id: "ir-layer",
+        type: "raster",
+        source: "ir",
+        paint: { "raster-opacity": 0.82, "raster-fade-duration": 220 },
+      });
+
+      m.addSource("cone", { type: "geojson", data: EMPTY });
+      m.addLayer({ id: "cone-fill", type: "fill", source: "cone",
+        paint: { "fill-color": "#35C4E8", "fill-opacity": 0.13 } });
+      m.addLayer({ id: "cone-line", type: "line", source: "cone",
+        paint: { "line-color": "#35C4E8", "line-opacity": 0.55, "line-width": 1.2 } });
+
+      m.addSource("observed", { type: "geojson", data: EMPTY });
       m.addLayer({ id: "observed-line", type: "line", source: "observed",
-        paint: { "line-color": "#D6E4EE", "line-width": 2, "line-opacity": 0.85 } });
+        paint: { "line-color": "#E4EEF6", "line-width": 2, "line-opacity": 0.9 } });
 
       // Forecast is dashed and a different hue. If a judge cannot tell at a
       // glance which part of the line is a forecast, the map is misleading.
-      m.addSource("forecast", { type: "geojson", data: empty() });
+      m.addSource("forecast", { type: "geojson", data: EMPTY });
       m.addLayer({ id: "forecast-line", type: "line", source: "forecast",
         paint: { "line-color": "#F2C63D", "line-width": 2.2,
-                 "line-dasharray": [2, 1.6] } });
+                 "line-dasharray": [2, 1.6], "line-opacity": 0.95 } });
 
-      m.addSource("points", { type: "geojson", data: empty() });
+      m.addSource("points", { type: "geojson", data: EMPTY });
       m.addLayer({ id: "points-c", type: "circle", source: "points",
         paint: {
-          "circle-radius": ["interpolate", ["linear"], ["get", "kt"], 20, 3.2, 140, 9],
+          "circle-radius": ["interpolate", ["linear"], ["get", "kt"], 20, 3, 140, 8.5],
           "circle-color": ["get", "color"],
-          "circle-stroke-color": "#071018", "circle-stroke-width": 1,
+          "circle-stroke-color": "#04090f",
+          "circle-stroke-width": 1,
         } });
 
-      m.addSource("fcpoints", { type: "geojson", data: empty() });
+      m.addSource("fcpoints", { type: "geojson", data: EMPTY });
       m.addLayer({ id: "fcpoints-c", type: "circle", source: "fcpoints",
         paint: {
-          "circle-radius": 4.5, "circle-color": "#071018",
+          "circle-radius": 4.5, "circle-color": "#04090f",
           "circle-stroke-color": ["get", "color"], "circle-stroke-width": 2,
         } });
 
-      m.addSource("now", { type: "geojson", data: empty() });
+      m.addSource("now", { type: "geojson", data: EMPTY });
       m.addLayer({ id: "now-halo", type: "circle", source: "now",
-        paint: { "circle-radius": 16, "circle-color": ["get", "color"],
-                 "circle-opacity": 0.18 } });
+        paint: { "circle-radius": 20, "circle-color": ["get", "color"],
+                 "circle-opacity": 0.16 } });
       m.addLayer({ id: "now-c", type: "circle", source: "now",
         paint: { "circle-radius": 6, "circle-color": ["get", "color"],
                  "circle-stroke-color": "#FFFFFF", "circle-stroke-width": 1.5 } });
 
-      ready.current = true;
-      // Draw whatever has already arrived. Track data can land before the style
-      // finishes loading, and the data effects below bail out while the map is
-      // not ready — without this the first frames are silently dropped and the
-      // track only appears after the next WebSocket message.
-      redraw.current?.();
+      m.resize();
+      setReady(true);
     });
+
+    // Dev-only handle so the map can be inspected from the browser console.
+    // Stripped from production builds by the bundler's dead-code elimination.
+    if (import.meta.env.DEV) (window as unknown as Record<string, unknown>).__map = m;
+
+    // MapLibre measures the container at construction. Under React 18 the
+    // effect runs before the flex/absolute layout has settled, so it can latch
+    // onto the 400x300 fallback and never correct itself — a full-bleed map that
+    // silently renders at a quarter size. A ResizeObserver fixes both the
+    // initial measurement and later window changes.
+    const ro = new ResizeObserver(() => m.resize());
+    ro.observe(ref.current);
+
     map.current = m;
-    return () => { m.remove(); map.current = null; ready.current = false; };
+    return () => {
+      ro.disconnect();
+      m.remove();
+      map.current = null;
+      setReady(false);
+    };
   }, []);
 
-  // -- draw everything -------------------------------------------------
-  // One draw function rather than two effects, held in a ref so the style's
-  // `load` handler can call it too. Track data routinely arrives before the
-  // style finishes loading; without that call the first frames are dropped and
-  // the track only appears once the next WebSocket message lands.
-  const draw = useCallback(() => {
+  // -- layer visibility toggles -----------------------------------------
+  useEffect(() => {
     const m = map.current;
-    if (!m || !ready.current) return;
+    if (!m || !ready) return;
+    const set = (id: string, on: boolean) => {
+      if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", on ? "visible" : "none");
+    };
+    set("ir-layer", layers.satellite);
+    set("cone-fill", layers.cone);
+    set("cone-line", layers.cone);
+    set("forecast-line", layers.forecast);
+    set("fcpoints-c", layers.forecast);
+    set("observed-line", layers.track);
+    set("points-c", layers.track);
+  }, [layers, ready]);
 
-    const src = (id: string) => m.getSource(id) as maplibregl.GeoJSONSource | undefined;
+  // -- georeferenced infrared imagery ------------------------------------
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready) return;
+    const src = m.getSource("ir") as maplibregl.ImageSource | undefined;
+    const corners = classify?.frame_corners;
+    if (!src || !georefUrl || !corners || corners.length !== 4) return;
 
-    // --- observed track ---
+    // Decode before handing the bitmap to MapLibre. updateImage with a URL that
+    // has not loaded yet leaves the previous frame on screen for a beat, which
+    // during a fast replay shows imagery one step behind the track.
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      try {
+        const [tl, tr, br, bl] = corners;
+        src.setCoordinates([tl, tr, br, bl]);
+        src.updateImage({ url: georefUrl });
+      } catch {
+        /* source torn down mid-flight during a case switch */
+      }
+    };
+    img.src = georefUrl;
+  }, [georefUrl, classify?.frame_corners, ready]);
+
+  // -- observed track ----------------------------------------------------
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready) return;
+    const src = m.getSource("observed") as maplibregl.GeoJSONSource | undefined;
+    const pts = m.getSource("points") as maplibregl.GeoJSONSource | undefined;
+    if (!src || !pts) return;
+
     const coords = observed.map((p) => [p.lon, p.lat] as [number, number]);
-    src("observed")?.setData(
+    src.setData(
       coords.length > 1
         ? { type: "Feature", properties: {},
             geometry: { type: "LineString", coordinates: coords } }
-        : empty()
+        : EMPTY
     );
-    src("points")?.setData({
+    pts.setData({
       type: "FeatureCollection",
       features: observed.map((p) => ({
         type: "Feature",
@@ -157,95 +229,68 @@ export function MapView() {
 
     const last = observed[observed.length - 1];
     if (last) {
-      src("now")?.setData({
+      (m.getSource("now") as maplibregl.GeoJSONSource)?.setData({
         type: "Feature",
         properties: { color: catColor(classify?.imd_category ?? last.imd_category) },
         geometry: { type: "Point", coordinates: [last.lon, last.lat] },
       });
+      // Recentre only on a case change, not on every step. Panning the map out
+      // from under someone who is inspecting it is worse than letting the storm
+      // drift toward an edge.
+      if (activeCase && followed.current !== activeCase.id) {
+        followed.current = activeCase.id;
+        m.easeTo({ center: [last.lon, last.lat], zoom: 4.6, duration: 800 });
+      }
     }
+  }, [observed, classify, ready, activeCase]);
 
-    // --- forecast and cone ---
+  // -- forecast and cone -------------------------------------------------
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready) return;
+    const cone = m.getSource("cone") as maplibregl.GeoJSONSource | undefined;
+    const fc = m.getSource("forecast") as maplibregl.GeoJSONSource | undefined;
+    const fp = m.getSource("fcpoints") as maplibregl.GeoJSONSource | undefined;
+    if (!cone || !fc || !fp) return;
+
     if (!nowcast?.forecasts?.length) {
-      src("cone")?.setData(empty());
-      src("forecast")?.setData(empty());
-      src("fcpoints")?.setData(empty());
-    } else {
-      src("cone")?.setData(
-        nowcast.cone?.length > 3
-          ? { type: "Feature", properties: {},
-              geometry: { type: "Polygon", coordinates: [nowcast.cone] } }
-          : empty()
-      );
-      const path: [number, number][] = [
-        ...(last ? [[last.lon, last.lat] as [number, number]] : []),
-        ...nowcast.forecasts.map(
-          (f) => [f.position.lon, f.position.lat] as [number, number]
-        ),
-      ];
-      src("forecast")?.setData(
-        path.length > 1
-          ? { type: "Feature", properties: {},
-              geometry: { type: "LineString", coordinates: path } }
-          : empty()
-      );
-      src("fcpoints")?.setData({
-        type: "FeatureCollection",
-        features: nowcast.forecasts.map((f) => ({
-          type: "Feature",
-          properties: { color: catColor(f.imd_category), lead: f.lead_h },
-          geometry: { type: "Point", coordinates: [f.position.lon, f.position.lat] },
-        })),
-      });
+      cone.setData(EMPTY); fc.setData(EMPTY); fp.setData(EMPTY);
+      return;
     }
 
-    // --- keep the storm and its cone in view ---
-    // Fit to the whole picture rather than centring on the last fix, so the
-    // cone is never half off-screen and the track history stays visible.
-    const all: [number, number][] = [
-      ...coords,
-      ...(nowcast?.forecasts ?? []).map(
-        (f) => [f.position.lon, f.position.lat] as [number, number]
-      ),
-      ...((nowcast?.cone ?? []) as [number, number][]),
+    cone.setData(
+      nowcast.cone?.length > 3
+        ? { type: "Feature", properties: {},
+            geometry: { type: "Polygon", coordinates: [nowcast.cone] } }
+        : EMPTY
+    );
+
+    const here = observed[observed.length - 1];
+    const path: [number, number][] = [
+      ...(here ? [[here.lon, here.lat] as [number, number]] : []),
+      ...nowcast.forecasts.map((f) => [f.position.lon, f.position.lat] as [number, number]),
     ];
-    if (all.length >= 2 && !userMoved.current) {
-      const lons = all.map((c) => c[0]);
-      const lats = all.map((c) => c[1]);
-      m.fitBounds(
-        [[Math.min(...lons), Math.min(...lats)], [Math.max(...lons), Math.max(...lats)]],
-        { padding: 90, maxZoom: 6.5, duration: 500 }
-      );
-    }
-  }, [observed, nowcast, classify]);
-
-  redraw.current = draw;
-  useEffect(() => { draw(); }, [draw]);
+    fc.setData(
+      path.length > 1
+        ? { type: "Feature", properties: {},
+            geometry: { type: "LineString", coordinates: path } }
+        : EMPTY
+    );
+    fp.setData({
+      type: "FeatureCollection",
+      features: nowcast.forecasts.map((f) => ({
+        type: "Feature",
+        properties: { color: catColor(f.imd_category), lead: f.lead_h },
+        geometry: { type: "Point", coordinates: [f.position.lon, f.position.lat] },
+      })),
+    });
+  }, [nowcast, observed, ready]);
 
   return (
-    <div className="map-wrap">
+    <div className="map-root">
       <div ref={ref} className="map" role="img"
-           aria-label="Cyclone track map with forecast and uncertainty cone" />
-      <MapLegend />
-    </div>
-  );
-}
-
-function MapLegend() {
-  const nowcast = useStore((s) => s.nowcast);
-  const cov = nowcast?.cone_measured_coverage ?? {};
-  const cov24 = cov["24"];
-  return (
-    <div className="legend">
-      <div className="legend-row"><span className="sw sw-observed" /> Observed best track</div>
-      <div className="legend-row"><span className="sw sw-forecast" /> CYCLOPS forecast</div>
-      <div className="legend-row">
-        <span className="sw sw-cone" /> 67% uncertainty cone
-        {cov24 !== undefined && (
-          <em title="Fraction of held-out truth positions inside the cone at 24 h">
-            {" "}· measured {(cov24 * 100).toFixed(0)}%
-          </em>
-        )}
-      </div>
+           aria-label="Cyclone track map with satellite imagery, forecast and uncertainty cone" />
+      <WindParticles map={map.current} grid={windGrid} visible={layers.wind} />
     </div>
   );
 }
