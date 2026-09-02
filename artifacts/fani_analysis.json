@@ -1,0 +1,51 @@
+{
+  "storm": "Fani",
+  "sid": "2019116N02090",
+  "season": 2019,
+  "data": {
+    "imagery": "REAL \u2014 NASA GIBS, MODIS Terra/Aqua Band 31 (11 um)",
+    "labels": "REAL \u2014 IBTrACS v04r01 NEWDELHI_WIND (3-min sustained, IMD)",
+    "n_scenes": 18,
+    "note": "Crops are centred on the PREVIOUS best-track fix, never on the truth at overpass time, so the centre-fix error is a genuine measurement."
+  },
+  "identification": {
+    "detection_rate": 0.444,
+    "centre_error_km": {
+      "mean": 20.0,
+      "median": 18.0,
+      "p90": 32.2,
+      "max": 36.6
+    },
+    "first_guess_error_km": {
+      "mean": 18.7,
+      "median": 16.6
+    },
+    "last_fix_error_km": {
+      "mean": 49.5,
+      "median": 37.5
+    },
+    "skill_vs_first_guess": -0.066,
+    "frames_refined": 1,
+    "eye_detected_frames": 1
+  },
+  "classification": {
+    "method": "Objective Dvorak (enhanced IR), no parameters fitted to Fani",
+    "raw": {
+      "rmse_kt": 29.76,
+      "mae_kt": 24.94,
+      "bias_kt": 10.33
+    },
+    "time_constrained": {
+      "rmse_kt": 28.37,
+      "mae_kt": 24.67,
+      "bias_kt": 11.07
+    },
+    "category_exact": 0.222,
+    "category_within_one": 0.5,
+    "patterns": {
+      "EMBEDDED_CENTER": 1,
+      "CDO": 16,
+      "EYE": 1
+    }
+  }
+}

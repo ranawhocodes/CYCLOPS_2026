@@ -40,6 +40,11 @@ intensity:  ## train the fusion intensity model and run the ablation
 	$(EXPORT) $(PY) -W ignore -m cyclops.train.train_intensity
 
 # ---------------------------------------------------------------- eval
+.PHONY: fani
+fani:  ## fetch real MODIS scenes for Fani and run identification + Dvorak
+	$(EXPORT) $(PY) -W ignore -u -m cyclops.analysis.run_fani
+	$(EXPORT) $(PY) -W ignore -m cyclops.analysis.fani_figures
+
 .PHONY: eval
 eval:  ## print the results table from artifacts/
 	$(EXPORT) $(PY) -m cyclops.eval.report

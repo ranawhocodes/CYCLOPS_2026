@@ -13,7 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 
 from .config import settings  # noqa: E402
 from .disclaimer import DISCLAIMER  # noqa: E402
-from .routers import cases, classify, health, metrics, nowcast, replay  # noqa: E402
+from .routers import (cases, classify, fani, health, metrics,  # noqa: E402
+                      nowcast, replay)
 from .services.alerts import AlertService  # noqa: E402
 from .services.inference import InferenceEngine  # noqa: E402
 from .services.replay import ReplayManager  # noqa: E402
@@ -65,5 +66,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-for r in (health, cases, classify, nowcast, replay, metrics):
+for r in (health, cases, classify, nowcast, replay, metrics, fani):
     app.include_router(r.router, prefix="/v1")

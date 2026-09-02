@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "./api/client";
 import { useStore } from "./store";
 import { useLiveSocket } from "./hooks/useLiveSocket";
@@ -13,11 +13,13 @@ import { Timeline } from "./components/Timeline";
 import { MetricsView } from "./components/MetricsView";
 import { CasePicker } from "./components/CasePicker";
 import { LayerControl } from "./components/LayerControl";
+import { FaniStudy } from "./components/FaniStudy";
 
 const DISCLAIMER =
   "Decision-support aid. Not a substitute for IMD operational warnings.";
 
 export default function App() {
+  const [showFani, setShowFani] = useState(false);
   const {
     cases, setCases, setHealth, health, activeCase, setActiveCase,
     replay, setReplay, resetCase, setShowMetrics,
@@ -82,6 +84,11 @@ export default function App() {
 
         <div className="hud-actions">
           <LayerControl />
+          <button className="btn fani-btn" onClick={() => setShowFani(true)}
+                  title="Cyclone Fani — real MODIS imagery, end to end">
+            <span className="real-dot" aria-hidden />
+            Fani · real data
+          </button>
           <button className="icon-btn" onClick={() => setShowMetrics(true)}
                   title="Performance against baselines" aria-label="Performance">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
@@ -140,6 +147,7 @@ export default function App() {
       </footer>
 
       <MetricsView />
+      {showFani && <FaniStudy onClose={() => setShowFani(false)} />}
     </div>
   );
 }

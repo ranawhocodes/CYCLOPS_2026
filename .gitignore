@@ -35,3 +35,4 @@ models/*.onnx.data
 
 # TypeScript incremental build cache — regenerated on every build
 console/tsconfig.tsbuildinfo
+data/raw/gibs/
