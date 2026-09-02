@@ -53,13 +53,17 @@ insat-status:  ## check MOSDAC/INSAT access (search is open; downloads need an a
 insat-selftest:  ## verify the INSAT L1B reader against a synthetic granule
 	$(EXPORT) $(PY) -W ignore -m cyclops.data.insat_selftest
 
+.PHONY: insat-demo
+insat-demo:  ## run the full pipeline on the INSAT path using synthetic granules
+	$(EXPORT) $(PY) -W ignore -u -m cyclops.data.insat_demo
+
 .PHONY: insat-plan
 insat-plan:  ## size an INSAT download for Fani's window before committing to it
 	$(EXPORT) $(PY) -m cyclops.data.insat_cli plan --start 2019-04-25 --end 2019-05-05 --every 180
 
 .PHONY: cases
 cases:  ## run all three real-imagery storms; Amphan and Mocha are out-of-sample
-	$(EXPORT) $(PY) -W ignore -u -m cyclops.analysis.run_case
+	$(EXPORT) $(PY) -W ignore -u -m cyclops.analysis.run_case --source=auto
 	$(EXPORT) $(PY) -W ignore -m cyclops.analysis.fani_figures
 	$(EXPORT) $(PY) -W ignore -m cyclops.analysis.transfer_figure
 

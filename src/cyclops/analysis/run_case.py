@@ -20,7 +20,7 @@ import pandas as pd
 
 from ..config import ARTIFACTS
 from ..data.features import filter_nio
-from ..data.gibs import fetch_scene, overpass_utc
+from ..data.scene_source import SceneSource, resolve_source
 from ..data.ibtracs import load
 from ..domain.imd import CATEGORIES, to_imd_category, t_number_to_wind, wind_to_t_number
 from ..eval.baselines import GEOD
@@ -30,10 +30,9 @@ from .dvorak import estimate, smooth_series
 PATCH_KM = 1024.0
 SIZE = 256
 
-# Day passes only. A night overpass falls on the previous UTC calendar day while
-# GIBS dates the granule by local night; reconciling that against a UTC best
-# track adds hours of timing ambiguity.
-PASSES = ("terra_day", "aqua_day")
+# Which looks exist is the source's business, not this module's. GibsSource
+# restricts itself to day passes for the UTC-date reason documented there;
+# InsatSource has no such constraint because its timestamps are published.
 
 CASES = {
     "fani":   ("2019116N02090", "Fani", 2019),
@@ -60,83 +59,92 @@ def _interp(f: pd.DataFrame, when) -> tuple[float, float, float] | None:
             float(np.interp(x, t, f.wind_kt_3min)))
 
 
-def run_case(sid: str, name: str, season: int, verbose: bool = True) -> dict:
+def run_case(sid: str, name: str, season: int, verbose: bool = True,
+             source: SceneSource | None = None, prefer: str = "auto") -> dict:
     f = _track(sid)
-    # Local solar time depends on where the storm is, so the UTC overpass time
-    # is computed from this storm's own longitude rather than a constant.
+    # Local solar time depends on where the storm is, so a polar-orbiter's UTC
+    # overpass time is computed from this storm's own longitude.
     ref_lon = float(f.lon.median())
-    dates = pd.date_range(f.iso_time.min().normalize(),
-                          f.iso_time.max().normalize(), freq="D")
+    t_start, t_end = f.iso_time.min().to_pydatetime(), f.iso_time.max().to_pydatetime()
+
+    if source is None:
+        source = resolve_source(prefer, t_start, t_end)
+    obs_list = source.observations(t_start, t_end, ref_lon)
+    if verbose:
+        print(f"  source: {source.name}")
+        print(f"          {source.cadence_note}")
+        print(f"          {len(obs_list)} looks in window; "
+              f"timestamps {'published' if source.time_is_exact else 'ESTIMATED'}")
 
     frames = []
-    for d in dates:
-        ds = d.strftime("%Y-%m-%d")
-        for p in PASSES:
-            ov = overpass_utc(p, d.to_pydatetime(), ref_lon)
-            truth = _interp(f, ov)
-            if truth is None:
-                continue
-            t_lat, t_lon, t_kt = truth
+    for obs in obs_list:
+        ov = obs.time
+        p = obs.label
+        ds = ov.strftime("%Y-%m-%d")
+        truth = _interp(f, ov)
+        if truth is None:
+            continue
+        t_lat, t_lon, t_kt = truth
 
-            prior = f[f.iso_time <= ov]
-            if len(prior) < 2:
-                continue
-            last, prev = prior.iloc[-1], prior.iloc[-2]
+        prior = f[f.iso_time <= ov]
+        if len(prior) < 2:
+            continue
+        last, prev = prior.iloc[-1], prior.iloc[-2]
 
-            dt_prev = (last.iso_time - prev.iso_time).total_seconds()
-            dt_fwd = (ov - last.iso_time).total_seconds()
-            if dt_prev > 0:
-                rate = min(dt_fwd / dt_prev, 3.0)
-                g_lat = float(last.lat + (last.lat - prev.lat) * rate)
-                g_lon = float(last.lon + (last.lon - prev.lon) * rate)
-            else:
-                g_lat, g_lon = float(last.lat), float(last.lon)
+        dt_prev = (last.iso_time - prev.iso_time).total_seconds()
+        dt_fwd = (ov - last.iso_time).total_seconds()
+        if dt_prev > 0:
+            rate = min(dt_fwd / dt_prev, 3.0)
+            g_lat = float(last.lat + (last.lat - prev.lat) * rate)
+            g_lon = float(last.lon + (last.lon - prev.lon) * rate)
+        else:
+            g_lat, g_lon = float(last.lat), float(last.lon)
 
-            sc = fetch_scene(g_lat, g_lon, ds, pass_name=p,
-                             patch_km=PATCH_KM, size=SIZE)
-            if sc is None:
-                continue
+        sc = source.scene_at(obs, g_lat, g_lon, patch_km=PATCH_KM, size=SIZE)
+        if sc is None:
+            continue
 
-            fix = find_centre(sc.kelvin, sc.valid, sc.bbox, sc.km_per_px,
-                              first_guess_rc=(SIZE / 2, SIZE / 2),
-                              search_radius_km=120.0)
-            est = estimate(sc.kelvin, sc.valid, fix, sc.km_per_px)
+        fix = find_centre(sc.kelvin, sc.valid, sc.bbox, sc.km_per_px,
+                          first_guess_rc=(SIZE / 2, SIZE / 2),
+                          search_radius_km=120.0)
+        est = estimate(sc.kelvin, sc.valid, fix, sc.km_per_px)
 
-            _, _, err_m = GEOD.inv(fix.lon, fix.lat, t_lon, t_lat)
-            _, _, base_m = GEOD.inv(g_lon, g_lat, t_lon, t_lat)
-            _, _, lastfix_m = GEOD.inv(float(last.lon), float(last.lat), t_lon, t_lat)
+        _, _, err_m = GEOD.inv(fix.lon, fix.lat, t_lon, t_lat)
+        _, _, base_m = GEOD.inv(g_lon, g_lat, t_lon, t_lat)
+        _, _, lastfix_m = GEOD.inv(float(last.lon), float(last.lat), t_lon, t_lat)
 
-            frames.append({
-                "date": ds, "pass": p, "observed_at": ov.isoformat(),
-                "first_guess": {"lat": round(g_lat, 3), "lon": round(g_lon, 3)},
-                "truth": {"lat": round(t_lat, 3), "lon": round(t_lon, 3),
-                          "wind_kt": round(t_kt, 1),
-                          "imd_category": to_imd_category(t_kt),
-                          "t_number": round(float(wind_to_t_number(t_kt)), 1)},
-                "fix": {"lat": round(fix.lat, 3), "lon": round(fix.lon, 3),
-                        "detected": bool(fix.detected), "refined": bool(fix.refined),
-                        "confidence": round(fix.confidence, 3),
-                        "symmetry": round(fix.symmetry, 3),
-                        "eye_detected": bool(fix.eye_detected),
-                        "eye_temp_c": fix.eye_temp_c, "ring_temp_c": fix.ring_temp_c,
-                        "cold_fraction": round(fix.cold_fraction, 4),
-                        "reason": fix.reason},
-                "dvorak": {"pattern": est.pattern, "t_number": est.t_number,
-                           "wind_kt": est.wind_kt, "imd_category": est.imd_category,
-                           "cdo_diameter_km": est.cdo_diameter_km, "rule": est.rule},
-                "centre_error_km": round(err_m / 1000.0, 1),
-                "first_guess_error_km": round(base_m / 1000.0, 1),
-                "last_fix_error_km": round(lastfix_m / 1000.0, 1),
-                "scene": {"coverage": round(sc.coverage, 3),
-                          "min_c": round(sc.min_c, 1),
-                          "bbox": [round(v, 4) for v in sc.bbox]},
-            })
-            if verbose:
-                print(f"  {ds} {p:10s} fix={err_m/1000:6.1f}km "
-                      f"guess={base_m/1000:6.1f}km "
-                      f"{'REF' if fix.refined else 'held'} sym={fix.symmetry:.2f} "
-                      f"{est.pattern:16s} T{est.t_number:.1f} -> "
-                      f"{est.wind_kt:5.1f}kt vs {t_kt:5.1f}kt", flush=True)
+        frames.append({
+            "date": ds, "pass": p, "observed_at": ov.isoformat(),
+            "time_is_exact": bool(obs.time_is_exact),
+            "first_guess": {"lat": round(g_lat, 3), "lon": round(g_lon, 3)},
+            "truth": {"lat": round(t_lat, 3), "lon": round(t_lon, 3),
+                      "wind_kt": round(t_kt, 1),
+                      "imd_category": to_imd_category(t_kt),
+                      "t_number": round(float(wind_to_t_number(t_kt)), 1)},
+            "fix": {"lat": round(fix.lat, 3), "lon": round(fix.lon, 3),
+                    "detected": bool(fix.detected), "refined": bool(fix.refined),
+                    "confidence": round(fix.confidence, 3),
+                    "symmetry": round(fix.symmetry, 3),
+                    "eye_detected": bool(fix.eye_detected),
+                    "eye_temp_c": fix.eye_temp_c, "ring_temp_c": fix.ring_temp_c,
+                    "cold_fraction": round(fix.cold_fraction, 4),
+                    "reason": fix.reason},
+            "dvorak": {"pattern": est.pattern, "t_number": est.t_number,
+                       "wind_kt": est.wind_kt, "imd_category": est.imd_category,
+                       "cdo_diameter_km": est.cdo_diameter_km, "rule": est.rule},
+            "centre_error_km": round(err_m / 1000.0, 1),
+            "first_guess_error_km": round(base_m / 1000.0, 1),
+            "last_fix_error_km": round(lastfix_m / 1000.0, 1),
+            "scene": {"coverage": round(sc.coverage, 3),
+                      "min_c": round(sc.min_c, 1),
+                      "bbox": [round(v, 4) for v in sc.bbox]},
+        })
+        if verbose:
+            print(f"  {ds} {p:10s} fix={err_m/1000:6.1f}km "
+                  f"guess={base_m/1000:6.1f}km "
+                  f"{'REF' if fix.refined else 'held'} sym={fix.symmetry:.2f} "
+                  f"{est.pattern:16s} T{est.t_number:.1f} -> "
+                  f"{est.wind_kt:5.1f}kt vs {t_kt:5.1f}kt", flush=True)
 
     if not frames:
         raise SystemExit(f"no frames analysed for {name}")
@@ -176,9 +184,10 @@ def run_case(sid: str, name: str, season: int, verbose: bool = True) -> dict:
             "note": "chosen on Fani; unchanged for every storm",
         },
         "data": {
-            "imagery": "REAL - NASA GIBS, MODIS Terra/Aqua Band 31 (11 um)",
+            "imagery": f"REAL - {source.name}",
             "labels": "REAL - IBTrACS v04r01 NEWDELHI_WIND (3-min sustained, IMD)",
             "n_scenes": len(frames), "ref_lon": round(ref_lon, 2),
+            "source": source.describe(),
         },
         "identification": {
             "detection_rate": round(float(det.mean()), 3),
@@ -222,17 +231,22 @@ def run_case(sid: str, name: str, season: int, verbose: bool = True) -> dict:
     return summary
 
 
-def main(which: list[str] | None = None) -> dict:
+def main(which: list[str] | None = None, prefer: str = "auto") -> dict:
     out = {}
     for key in (which or list(CASES)):
         sid, name, season = CASES[key]
         print(f"\n=== {name} {season} ({sid}) ===", flush=True)
-        out[key] = run_case(sid, name, season)
+        out[key] = run_case(sid, name, season, prefer=prefer)
     return out
 
 
 if __name__ == "__main__":
     import sys
-    res = main(sys.argv[1:] or None)
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    prefer = "auto"
+    for a in sys.argv[1:]:
+        if a.startswith("--source="):
+            prefer = a.split("=", 1)[1]
+    res = main(args or None, prefer=prefer)
     print("\n" + "=" * 78)
     print(json.dumps(res, indent=2))

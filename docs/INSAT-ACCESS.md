@@ -152,3 +152,61 @@ It has **not** been run on a real MOSDAC granule, because that needs an account.
 prints the actual structure, so a layout difference shows up immediately instead
 of becoming wrong temperatures. A granule with an unexpected layout raises
 `InsatFormatError` naming what is missing.
+
+
+## Wired into the pipeline
+
+The analysis chain no longer knows which satellite it is looking at.
+`cyclops/data/scene_source.py` is the seam:
+
+| source | cadence | timestamps | needs |
+|---|---|---|---|
+| `GibsSource` | ~2 day passes/day | **estimated**, ±30 min | nothing |
+| `InsatSource` | ~30 min | **published** | granules on disk |
+
+`resolve_source()` picks INSAT when granules covering the window are present and
+falls back to GIBS otherwise, so **the pipeline upgrades itself the moment data
+appears** — no code change. Asking for INSAT explicitly when the cache is empty
+raises rather than silently falling back, because a run that quietly used the
+wrong source would be worse than one that stopped.
+
+```bash
+make cases                                    # auto: INSAT if available, else GIBS
+python -m cyclops.analysis.run_case fani --source=gibs    # force
+python -m cyclops.analysis.run_case fani --source=insat   # force, errors if empty
+```
+
+Every run records which source it used, and whether timestamps were published or
+estimated, in `artifacts/<storm>_analysis.json` under `data.source`.
+
+### The refactor was verified behaviour-preserving
+
+Fani through the new abstraction on the GIBS path returns identical numbers —
+centre error, first-guess error, skill, refined count, RMSE, category accuracy
+and pattern counts all unchanged, 18 scenes both times.
+
+### Demonstrated end to end
+
+```bash
+make insat-demo
+```
+
+Builds synthetic granules with the real L1B layout and the real MOSDAC filename
+convention along Fani's actual track, then runs the whole pipeline over them:
+
+```
+looks available over Fani's window
+  NASA GIBS / MODIS Band 31 (11 um)             18   timestamps ESTIMATED
+  MOSDAC / INSAT-3DR L1B TIR-1 (10.8 um)        30   timestamps PUBLISHED
+
+  ... SHEAR -> EMBEDDED_CENTER -> EYE (11 detections) -> SHEAR after landfall
+  centre fix : 14.7 km (vs 18.3 km first guess)
+```
+
+**Those are not skill numbers.** The imagery is synthetic and perfectly
+axisymmetric, which makes eye detection far easier than reality — symmetry scores
+run 0.95–1.00 against 0.06–0.64 on real MODIS. What the demo proves is the
+wiring: source resolution, granule indexing, LUT decoding, resampling, and
+`centre_fix`/`dvorak` consuming INSAT scenes unchanged.
+
+Swap in real granules and the same command produces a real result.

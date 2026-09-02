@@ -1,955 +1,1567 @@
 [
   {
     "date": "2019-04-26",
-    "pass": "terra_day",
-    "observed_at": "2019-04-26T04:40:48+00:00",
+    "pass": "3RIMG 01:14Z",
+    "observed_at": "2019-04-26T01:14:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 2.434,
-      "lon": 89.844
+      "lat": 2.262,
+      "lon": 89.959
     },
     "truth": {
-      "lat": 2.434,
-      "lon": 89.766,
+      "lat": 2.262,
+      "lon": 89.938,
       "wind_kt": 22.0,
       "imd_category": "D",
       "t_number": 1.5
     },
     "fix": {
-      "lat": 2.416,
-      "lon": 89.862,
+      "lat": 2.244,
+      "lon": 89.977,
       "detected": false,
       "refined": false,
-      "confidence": 0.237,
-      "symmetry": 0.163,
+      "confidence": 0.247,
+      "symmetry": 0.988,
       "eye_detected": false,
-      "eye_temp_c": -82.25,
-      "ring_temp_c": -83.23471679687498,
-      "cold_fraction": 0.196,
-      "reason": "no eye pattern (best contrast 4C < 15C); held the motion-extrapolated first guess"
+      "eye_temp_c": -60.5595703125,
+      "ring_temp_c": -60.56989135742185,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
     },
     "dvorak": {
-      "pattern": "CDO",
-      "t_number": 5.0,
-      "wind_kt": 79.2,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 361.2,
-      "rule": "CDO: shield 361 km -> base T4.5; coldest -89C -> +0.50",
-      "t_number_smoothed": 5.0,
-      "wind_kt_smoothed": 79.2,
-      "imd_category_smoothed": "VSCS"
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -68C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
     },
-    "centre_error_km": 10.9,
-    "first_guess_error_km": 8.7,
-    "last_fix_error_km": 36.7,
+    "centre_error_km": 4.7,
+    "first_guess_error_km": 2.3,
+    "last_fix_error_km": 9.7,
     "scene": {
-      "coverage": 0.72,
-      "min_c": -89.1,
+      "coverage": 1.0,
+      "min_c": -67.8,
       "bbox": [
-        85.2405,
-        -2.1964,
-        94.4475,
-        7.0644
+        85.356,
+        -2.3687,
+        94.5618,
+        6.892
       ]
     }
   },
   {
     "date": "2019-04-26",
-    "pass": "aqua_day",
-    "observed_at": "2019-04-26T07:40:48+00:00",
+    "pass": "3RIMG 08:28Z",
+    "observed_at": "2019-04-26T08:28:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 2.584,
-      "lon": 89.616
+      "lat": 2.623,
+      "lon": 89.577
     },
     "truth": {
-      "lat": 2.696,
-      "lon": 89.728,
-      "wind_kt": 22.8,
+      "lat": 2.788,
+      "lon": 89.741,
+      "wind_kt": 23.2,
       "imd_category": "D",
       "t_number": 1.6
     },
     "fix": {
-      "lat": 2.566,
-      "lon": 89.634,
+      "lat": 2.605,
+      "lon": 89.595,
       "detected": false,
       "refined": false,
-      "confidence": 0.17,
-      "symmetry": 0.176,
+      "confidence": 0.215,
+      "symmetry": 0.86,
       "eye_detected": false,
-      "eye_temp_c": -79.04998779296875,
-      "ring_temp_c": -82.06807556152341,
-      "cold_fraction": 0.1257,
-      "reason": "no eye pattern (best contrast 11C < 15C); held the motion-extrapolated first guess"
+      "eye_temp_c": -60.74530029296875,
+      "ring_temp_c": -61.441793823242165,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
     },
     "dvorak": {
-      "pattern": "CDO",
-      "t_number": 4.5,
-      "wind_kt": 67.8,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 344.3,
-      "rule": "CDO: shield 344 km -> base T4.0; coldest -91C -> +0.50",
-      "t_number_smoothed": 4.5,
-      "wind_kt_smoothed": 67.8,
-      "imd_category_smoothed": "VSCS"
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -67C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
     },
-    "centre_error_km": 17.8,
-    "first_guess_error_km": 17.6,
-    "last_fix_error_km": 21.9,
+    "centre_error_km": 25.9,
+    "first_guess_error_km": 25.8,
+    "last_fix_error_km": 32.1,
     "scene": {
-      "coverage": 0.881,
-      "min_c": -91.0,
+      "coverage": 1.0,
+      "min_c": -67.2,
       "bbox": [
-        85.012,
-        -2.0464,
-        94.22,
-        7.2144
+        84.9725,
+        -2.007,
+        94.1808,
+        7.2537
       ]
     }
   },
   {
-    "date": "2019-04-27",
-    "pass": "terra_day",
-    "observed_at": "2019-04-27T04:40:48+00:00",
+    "date": "2019-04-26",
+    "pass": "3RIMG 15:42Z",
+    "observed_at": "2019-04-26T15:42:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 5.224,
-      "lon": 89.322
+      "lat": 3.632,
+      "lon": 89.862
     },
     "truth": {
-      "lat": 4.99,
-      "lon": 89.4,
-      "wind_kt": 33.9,
-      "imd_category": "DD",
-      "t_number": 2.7
+      "lat": 3.57,
+      "lon": 89.615,
+      "wind_kt": 25.0,
+      "imd_category": "D",
+      "t_number": 1.8
     },
     "fix": {
-      "lat": 5.206,
-      "lon": 89.34,
+      "lat": 3.614,
+      "lon": 89.88,
       "detected": false,
       "refined": false,
-      "confidence": 0.278,
-      "symmetry": 0.11,
+      "confidence": 0.206,
+      "symmetry": 0.826,
       "eye_detected": false,
-      "eye_temp_c": -68.68999481201172,
-      "ring_temp_c": -82.35832824707029,
-      "cold_fraction": 0.3505,
-      "reason": "no eye pattern (best contrast 28C < 15C); held the motion-extrapolated first guess"
+      "eye_temp_c": -50.901702880859375,
+      "ring_temp_c": -58.965414428710915,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
     },
     "dvorak": {
-      "pattern": "CDO",
-      "t_number": 5.5,
-      "wind_kt": 89.8,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 480.2,
-      "rule": "CDO: shield 480 km -> base T5.0; coldest -93C -> +0.50",
-      "t_number_smoothed": 5.0,
-      "wind_kt_smoothed": 79.2,
-      "imd_category_smoothed": "VSCS"
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -67C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
     },
-    "centre_error_km": 24.8,
-    "first_guess_error_km": 27.3,
-    "last_fix_error_km": 43.1,
+    "centre_error_km": 29.8,
+    "first_guess_error_km": 28.2,
+    "last_fix_error_km": 45.8,
     "scene": {
-      "coverage": 0.954,
-      "min_c": -92.8,
+      "coverage": 1.0,
+      "min_c": -66.5,
       "bbox": [
-        84.7035,
-        0.5936,
-        93.9405,
-        9.8544
+        85.2531,
+        -0.9987,
+        94.4703,
+        8.262
+      ]
+    }
+  },
+  {
+    "date": "2019-04-26",
+    "pass": "3RIMG 22:56Z",
+    "observed_at": "2019-04-26T22:56:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 4.293,
+      "lon": 89.253
+    },
+    "truth": {
+      "lat": 4.458,
+      "lon": 89.418,
+      "wind_kt": 29.1,
+      "imd_category": "DD",
+      "t_number": 2.3
+    },
+    "fix": {
+      "lat": 4.275,
+      "lon": 89.271,
+      "detected": false,
+      "refined": false,
+      "confidence": 0.215,
+      "symmetry": 0.859,
+      "eye_detected": false,
+      "eye_temp_c": -62.41685485839844,
+      "ring_temp_c": -62.2414611816406,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
+    },
+    "dvorak": {
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -65C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
+    },
+    "centre_error_km": 25.9,
+    "first_guess_error_km": 25.8,
+    "last_fix_error_km": 73.3,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -64.6,
+      "bbox": [
+        84.641,
+        -0.337,
+        93.8656,
+        8.9237
       ]
     }
   },
   {
     "date": "2019-04-27",
-    "pass": "aqua_day",
-    "observed_at": "2019-04-27T07:40:48+00:00",
+    "pass": "3RIMG 06:10Z",
+    "observed_at": "2019-04-27T06:10:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 5.24,
+      "lat": 5.114,
       "lon": 89.4
     },
     "truth": {
-      "lat": 5.352,
-      "lon": 89.344,
-      "wind_kt": 37.8,
+      "lat": 5.125,
+      "lon": 89.394,
+      "wind_kt": 35.3,
       "imd_category": "CS",
-      "t_number": 2.9
+      "t_number": 2.8
     },
     "fix": {
-      "lat": 5.222,
+      "lat": 5.096,
       "lon": 89.418,
-      "detected": true,
+      "detected": false,
       "refined": false,
-      "confidence": 0.306,
-      "symmetry": 0.335,
+      "confidence": 0.247,
+      "symmetry": 0.987,
       "eye_detected": false,
-      "eye_temp_c": -80.34999084472656,
-      "ring_temp_c": -86.16667785644529,
-      "cold_fraction": 0.2219,
-      "reason": "no eye pattern (best contrast 26C < 15C); held the motion-extrapolated first guess"
+      "eye_temp_c": -61.85966491699219,
+      "ring_temp_c": -64.27413024902341,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
     },
     "dvorak": {
-      "pattern": "CDO",
-      "t_number": 5.0,
-      "wind_kt": 79.2,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 413.1,
-      "rule": "CDO: shield 413 km -> base T4.5; coldest -93C -> +0.50",
-      "t_number_smoothed": 5.0,
-      "wind_kt_smoothed": 79.2,
-      "imd_category_smoothed": "VSCS"
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -64C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
     },
-    "centre_error_km": 16.6,
-    "first_guess_error_km": 13.9,
-    "last_fix_error_km": 28.6,
+    "centre_error_km": 4.2,
+    "first_guess_error_km": 1.4,
+    "last_fix_error_km": 2.8,
     "scene": {
-      "coverage": 0.952,
-      "min_c": -92.8,
+      "coverage": 1.0,
+      "min_c": -64.3,
       "bbox": [
-        84.7813,
-        0.6096,
-        94.0187,
-        9.8704
+        84.7823,
+        0.4835,
+        94.0177,
+        9.7443
+      ]
+    }
+  },
+  {
+    "date": "2019-04-27",
+    "pass": "3RIMG 13:24Z",
+    "observed_at": "2019-04-27T13:24:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 6.21,
+      "lon": 89.153
+    },
+    "truth": {
+      "lat": 6.14,
+      "lon": 89.037,
+      "wind_kt": 45.0,
+      "imd_category": "CS",
+      "t_number": 3.3
+    },
+    "fix": {
+      "lat": 6.192,
+      "lon": 89.171,
+      "detected": false,
+      "refined": false,
+      "confidence": 0.232,
+      "symmetry": 0.928,
+      "eye_detected": false,
+      "eye_temp_c": -57.587921142578125,
+      "ring_temp_c": -65.94566955566404,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
+    },
+    "dvorak": {
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -67C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
+    },
+    "centre_error_km": 16.0,
+    "first_guess_error_km": 15.1,
+    "last_fix_error_km": 23.8,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -66.9,
+      "bbox": [
+        84.5268,
+        1.5796,
+        93.7798,
+        10.8404
+      ]
+    }
+  },
+  {
+    "date": "2019-04-27",
+    "pass": "3RIMG 20:38Z",
+    "observed_at": "2019-04-27T20:38:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 6.863,
+      "lon": 88.193
+    },
+    "truth": {
+      "lat": 6.819,
+      "lon": 88.324,
+      "wind_kt": 45.0,
+      "imd_category": "CS",
+      "t_number": 3.3
+    },
+    "fix": {
+      "lat": 6.845,
+      "lon": 88.211,
+      "detected": false,
+      "refined": false,
+      "confidence": 0.239,
+      "symmetry": 0.957,
+      "eye_detected": false,
+      "eye_temp_c": -57.587921142578125,
+      "ring_temp_c": -66.40485229492185,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
+    },
+    "dvorak": {
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -67C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
+    },
+    "centre_error_km": 12.9,
+    "first_guess_error_km": 15.3,
+    "last_fix_error_km": 31.1,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -66.9,
+      "bbox": [
+        83.5602,
+        2.233,
+        92.8253,
+        11.4937
       ]
     }
   },
   {
     "date": "2019-04-28",
-    "pass": "terra_day",
-    "observed_at": "2019-04-28T04:40:48+00:00",
+    "pass": "3RIMG 03:52Z",
+    "observed_at": "2019-04-28T03:52:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 7.49,
-      "lon": 87.788
+      "lat": 7.422,
+      "lon": 87.842
     },
     "truth": {
-      "lat": 7.334,
+      "lat": 7.293,
       "lon": 88.1,
       "wind_kt": 45.0,
       "imd_category": "CS",
       "t_number": 3.3
     },
     "fix": {
-      "lat": 7.472,
-      "lon": 87.806,
+      "lat": 7.404,
+      "lon": 87.86,
       "detected": false,
       "refined": false,
-      "confidence": 0.108,
-      "symmetry": 0.116,
+      "confidence": 0.208,
+      "symmetry": 0.831,
       "eye_detected": false,
-      "eye_temp_c": -55.9799919128418,
-      "ring_temp_c": -65.05000915527341,
-      "cold_fraction": 0.0789,
-      "reason": "no eye pattern (best contrast 31C < 15C); held the motion-extrapolated first guess"
+      "eye_temp_c": -54.98773193359375,
+      "ring_temp_c": -62.834738159179665,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
     },
     "dvorak": {
-      "pattern": "CDO",
-      "t_number": 4.5,
-      "wind_kt": 67.8,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 324.4,
-      "rule": "CDO: shield 324 km -> base T4.0; coldest -88C -> +0.50",
-      "t_number_smoothed": 4.5,
-      "wind_kt_smoothed": 67.8,
-      "imd_category_smoothed": "VSCS"
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -67C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
     },
-    "centre_error_km": 35.8,
-    "first_guess_error_km": 38.5,
-    "last_fix_error_km": 25.9,
+    "centre_error_km": 29.2,
+    "first_guess_error_km": 31.8,
+    "last_fix_error_km": 21.4,
     "scene": {
       "coverage": 1.0,
-      "min_c": -87.8,
+      "min_c": -66.9,
       "bbox": [
-        83.1491,
-        2.8596,
-        92.4269,
-        12.1204
+        83.204,
+        2.7918,
+        92.4804,
+        12.0526
       ]
     }
   },
   {
     "date": "2019-04-28",
-    "pass": "aqua_day",
-    "observed_at": "2019-04-28T07:40:48+00:00",
+    "pass": "3RIMG 11:06Z",
+    "observed_at": "2019-04-28T11:06:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 7.484,
+      "lat": 7.655,
       "lon": 88.1
     },
     "truth": {
-      "lat": 7.568,
-      "lon": 87.96,
+      "lat": 7.91,
+      "lon": 87.675,
       "wind_kt": 45.0,
       "imd_category": "CS",
       "t_number": 3.3
     },
     "fix": {
-      "lat": 7.466,
+      "lat": 7.637,
       "lon": 88.118,
       "detected": false,
       "refined": false,
-      "confidence": 0.071,
-      "symmetry": 0.071,
+      "confidence": 0.148,
+      "symmetry": 0.594,
       "eye_detected": false,
-      "eye_temp_c": -47.69999694824219,
-      "ring_temp_c": -58.4444641113281,
-      "cold_fraction": 0.0529,
-      "reason": "no eye pattern (best contrast 7C < 15C); held the motion-extrapolated first guess"
+      "eye_temp_c": -36.04344177246094,
+      "ring_temp_c": -50.783041381835915,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
     },
     "dvorak": {
-      "pattern": "CDO",
-      "t_number": 4.0,
-      "wind_kt": 57.2,
-      "imd_category": "SCS",
-      "cdo_diameter_km": 235.8,
-      "rule": "CDO: shield 236 km -> base T3.5; coldest -88C -> +0.50",
-      "t_number_smoothed": 4.0,
-      "wind_kt_smoothed": 57.2,
-      "imd_category_smoothed": "SCS"
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -67C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
     },
-    "centre_error_km": 20.8,
-    "first_guess_error_km": 18.0,
-    "last_fix_error_km": 24.2,
+    "centre_error_km": 57.5,
+    "first_guess_error_km": 54.7,
+    "last_fix_error_km": 73.3,
     "scene": {
       "coverage": 1.0,
-      "min_c": -87.8,
+      "min_c": -66.9,
       "bbox": [
-        83.4611,
-        2.8536,
-        92.7389,
-        12.1144
+        83.4593,
+        3.0246,
+        92.7407,
+        12.2854
       ]
     }
   },
   {
-    "date": "2019-04-29",
-    "pass": "terra_day",
-    "observed_at": "2019-04-29T04:40:48+00:00",
+    "date": "2019-04-28",
+    "pass": "3RIMG 18:20Z",
+    "observed_at": "2019-04-28T18:20:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 8.912,
-      "lon": 87.322
+      "lat": 8.211,
+      "lon": 87.494
     },
     "truth": {
-      "lat": 9.146,
-      "lon": 87.244,
+      "lat": 8.222,
+      "lon": 87.494,
       "wind_kt": 45.0,
       "imd_category": "CS",
       "t_number": 3.3
     },
     "fix": {
-      "lat": 8.894,
-      "lon": 87.34,
+      "lat": 8.193,
+      "lon": 87.513,
       "detected": false,
       "refined": false,
-      "confidence": 0.214,
-      "symmetry": 0.0,
+      "confidence": 0.247,
+      "symmetry": 0.988,
       "eye_detected": false,
-      "eye_temp_c": null,
-      "ring_temp_c": null,
-      "cold_fraction": 0.2142,
+      "eye_temp_c": -57.587921142578125,
+      "ring_temp_c": -66.87430419921873,
+      "cold_fraction": 0.0,
       "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
     },
     "dvorak": {
-      "pattern": "CDO",
-      "t_number": 4.5,
-      "wind_kt": 67.8,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 317.1,
-      "rule": "CDO: shield 317 km -> base T4.0; coldest -87C -> +0.50",
-      "t_number_smoothed": 4.5,
-      "wind_kt_smoothed": 67.8,
-      "imd_category_smoothed": "VSCS"
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -67C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
     },
-    "centre_error_km": 29.8,
-    "first_guess_error_km": 27.3,
-    "last_fix_error_km": 62.8,
+    "centre_error_km": 3.8,
+    "first_guess_error_km": 1.2,
+    "last_fix_error_km": 2.5,
     "scene": {
-      "coverage": 0.661,
-      "min_c": -86.6,
+      "coverage": 1.0,
+      "min_c": -66.9,
       "bbox": [
-        82.6664,
-        4.2816,
-        91.9776,
-        13.5424
+        82.8475,
+        3.5807,
+        92.1414,
+        12.8415
       ]
     }
   },
   {
     "date": "2019-04-29",
-    "pass": "aqua_day",
-    "observed_at": "2019-04-29T07:40:48+00:00",
+    "pass": "3RIMG 01:34Z",
+    "observed_at": "2019-04-29T01:34:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 9.496,
-      "lon": 87.144
+      "lat": 8.704,
+      "lon": 87.374
     },
     "truth": {
-      "lat": 9.552,
-      "lon": 87.172,
-      "wind_kt": 47.8,
+      "lat": 8.783,
+      "lon": 87.348,
+      "wind_kt": 45.0,
       "imd_category": "CS",
-      "t_number": 3.5
+      "t_number": 3.3
     },
     "fix": {
-      "lat": 9.478,
-      "lon": 87.162,
-      "detected": true,
-      "refined": false,
-      "confidence": 0.327,
-      "symmetry": 0.43,
-      "eye_detected": false,
-      "eye_temp_c": -78.44999694824219,
-      "ring_temp_c": -80.54166259765623,
-      "cold_fraction": 0.2197,
-      "reason": "no eye pattern (best contrast 21C < 15C); held the motion-extrapolated first guess"
-    },
-    "dvorak": {
-      "pattern": "CDO",
-      "t_number": 4.5,
-      "wind_kt": 67.8,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 296.3,
-      "rule": "CDO: shield 296 km -> base T4.0; coldest -88C -> +0.50",
-      "t_number_smoothed": 4.5,
-      "wind_kt_smoothed": 67.8,
-      "imd_category_smoothed": "VSCS"
-    },
-    "centre_error_km": 8.3,
-    "first_guess_error_km": 6.9,
-    "last_fix_error_km": 28.0,
-    "scene": {
-      "coverage": 0.67,
-      "min_c": -87.8,
-      "bbox": [
-        82.4807,
-        4.8656,
-        91.8073,
-        14.1264
-      ]
-    }
-  },
-  {
-    "date": "2019-04-30",
-    "pass": "terra_day",
-    "observed_at": "2019-04-30T04:40:48+00:00",
-    "first_guess": {
-      "lat": 12.502,
-      "lon": 86.266
-    },
-    "truth": {
-      "lat": 12.502,
-      "lon": 85.954,
-      "wind_kt": 77.8,
-      "imd_category": "VSCS",
-      "t_number": 4.9
-    },
-    "fix": {
-      "lat": 12.484,
-      "lon": 86.284,
+      "lat": 8.686,
+      "lon": 87.392,
       "detected": false,
       "refined": false,
-      "confidence": 0.209,
-      "symmetry": 0.101,
+      "confidence": 0.238,
+      "symmetry": 0.954,
       "eye_detected": false,
-      "eye_temp_c": -57.75,
-      "ring_temp_c": -68.81252136230466,
-      "cold_fraction": 0.1832,
-      "reason": "no eye pattern (best contrast 14C < 15C); held the motion-extrapolated first guess"
+      "eye_temp_c": -57.587921142578125,
+      "ring_temp_c": -66.51833190917966,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
     },
     "dvorak": {
-      "pattern": "CDO",
-      "t_number": 5.0,
-      "wind_kt": 79.2,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 375.1,
-      "rule": "CDO: shield 375 km -> base T4.5; coldest -91C -> +0.50",
-      "t_number_smoothed": 5.0,
-      "wind_kt_smoothed": 79.2,
-      "imd_category_smoothed": "VSCS"
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -67C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
     },
-    "centre_error_km": 36.0,
-    "first_guess_error_km": 33.9,
-    "last_fix_error_km": 97.8,
+    "centre_error_km": 11.7,
+    "first_guess_error_km": 9.1,
+    "last_fix_error_km": 21.0,
     "scene": {
       "coverage": 1.0,
-      "min_c": -91.0,
+      "min_c": -66.9,
       "bbox": [
-        81.5549,
-        7.8716,
-        90.9771,
-        17.1324
+        82.7209,
+        4.0741,
+        92.0268,
+        13.3348
+      ]
+    }
+  },
+  {
+    "date": "2019-04-29",
+    "pass": "3RIMG 08:48Z",
+    "observed_at": "2019-04-29T08:48:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 9.627,
+      "lon": 87.107
+    },
+    "truth": {
+      "lat": 9.72,
+      "lon": 87.153,
+      "wind_kt": 49.7,
+      "imd_category": "SCS",
+      "t_number": 3.6
+    },
+    "fix": {
+      "lat": 9.609,
+      "lon": 87.125,
+      "detected": false,
+      "refined": false,
+      "confidence": 0.239,
+      "symmetry": 0.955,
+      "eye_detected": false,
+      "eye_temp_c": -55.35917663574219,
+      "ring_temp_c": -67.59664001464841,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
+    },
+    "dvorak": {
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -68C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
+    },
+    "centre_error_km": 12.7,
+    "first_guess_error_km": 11.5,
+    "last_fix_error_km": 46.7,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -68.2,
+      "bbox": [
+        82.4416,
+        4.9963,
+        91.7717,
+        14.257
+      ]
+    }
+  },
+  {
+    "date": "2019-04-29",
+    "pass": "3RIMG 16:02Z",
+    "observed_at": "2019-04-29T16:02:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 10.805,
+      "lon": 87.033
+    },
+    "truth": {
+      "lat": 10.671,
+      "lon": 86.898,
+      "wind_kt": 55.0,
+      "imd_category": "SCS",
+      "t_number": 3.9
+    },
+    "fix": {
+      "lat": 10.787,
+      "lon": 87.051,
+      "detected": false,
+      "refined": false,
+      "confidence": 0.22,
+      "symmetry": 0.879,
+      "eye_detected": false,
+      "eye_temp_c": -53.13044738769531,
+      "ring_temp_c": -66.77629699707029,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
+    },
+    "dvorak": {
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -70C",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
+    },
+    "centre_error_km": 21.1,
+    "first_guess_error_km": 20.9,
+    "last_fix_error_km": 56.5,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -69.7,
+      "bbox": [
+        82.3504,
+        6.1746,
+        91.7151,
+        15.4354
+      ]
+    }
+  },
+  {
+    "date": "2019-04-29",
+    "pass": "3RIMG 23:16Z",
+    "observed_at": "2019-04-29T23:16:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 11.514,
+      "lon": 86.537
+    },
+    "truth": {
+      "lat": 11.69,
+      "lon": 86.537,
+      "wind_kt": 68.2,
+      "imd_category": "VSCS",
+      "t_number": 4.5
+    },
+    "fix": {
+      "lat": 11.496,
+      "lon": 86.555,
+      "detected": false,
+      "refined": false,
+      "confidence": 0.226,
+      "symmetry": 0.873,
+      "eye_detected": false,
+      "eye_temp_c": -47.1871337890625,
+      "ring_temp_c": -69.31973876953123,
+      "cold_fraction": 0.0078,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
+    },
+    "dvorak": {
+      "pattern": "EMBEDDED_CENTER",
+      "t_number": 2.0,
+      "wind_kt": 26.4,
+      "imd_category": "D",
+      "cdo_diameter_km": 101.9,
+      "rule": "EMBEDDED_CENTER: shield 102 km -> base T2.5; coldest -73C -> +0.00",
+      "t_number_smoothed": 2.0,
+      "wind_kt_smoothed": 26.4,
+      "imd_category_smoothed": "D"
+    },
+    "centre_error_km": 21.5,
+    "first_guess_error_km": 19.4,
+    "last_fix_error_km": 92.0,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -73.4,
+      "bbox": [
+        81.8428,
+        6.8841,
+        91.2305,
+        16.1448
       ]
     }
   },
   {
     "date": "2019-04-30",
-    "pass": "aqua_day",
-    "observed_at": "2019-04-30T07:40:48+00:00",
+    "pass": "3RIMG 06:30Z",
+    "observed_at": "2019-04-30T06:30:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 12.952,
-      "lon": 85.604
+      "lat": 12.775,
+      "lon": 85.742
     },
     "truth": {
-      "lat": 12.868,
-      "lon": 85.52,
-      "wind_kt": 82.8,
+      "lat": 12.75,
+      "lon": 85.717,
+      "wind_kt": 80.8,
       "imd_category": "VSCS",
-      "t_number": 5.2
+      "t_number": 5.1
     },
     "fix": {
-      "lat": 12.934,
-      "lon": 85.622,
-      "detected": true,
-      "refined": false,
-      "confidence": 0.273,
-      "symmetry": 0.422,
-      "eye_detected": false,
-      "eye_temp_c": -78.44999694824219,
-      "ring_temp_c": -80.4888977050781,
-      "cold_fraction": 0.1672,
-      "reason": "no eye pattern (best contrast 17C < 15C); held the motion-extrapolated first guess"
+      "lat": 12.757,
+      "lon": 85.723,
+      "detected": false,
+      "refined": true,
+      "confidence": 0.515,
+      "symmetry": 0.997,
+      "eye_detected": true,
+      "eye_temp_c": -41.61529541015625,
+      "ring_temp_c": -76.9036926269531,
+      "cold_fraction": 0.0085,
+      "reason": "no organised cold cloud mass: cold_fraction=0.009, symmetry=1.00"
     },
     "dvorak": {
-      "pattern": "CDO",
-      "t_number": 4.5,
-      "wind_kt": 67.8,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 297.5,
-      "rule": "CDO: shield 298 km -> base T4.0; coldest -93C -> +0.50",
-      "t_number_smoothed": 4.5,
-      "wind_kt_smoothed": 67.8,
-      "imd_category_smoothed": "VSCS"
+      "pattern": "EYE",
+      "t_number": 6.5,
+      "wind_kt": 111.8,
+      "imd_category": "ESCS",
+      "cdo_diameter_km": 106.7,
+      "rule": "EYE: eyewall -77C -> base T5.5; eye contrast 35C -> +1.0",
+      "t_number_smoothed": 2.5,
+      "wind_kt_smoothed": 30.8,
+      "imd_category_smoothed": "DD"
     },
-    "centre_error_km": 13.3,
-    "first_guess_error_km": 13.0,
-    "last_fix_error_km": 35.6,
+    "centre_error_km": 1.0,
+    "first_guess_error_km": 3.9,
+    "last_fix_error_km": 10.6,
     "scene": {
       "coverage": 1.0,
-      "min_c": -92.8,
+      "min_c": -76.9,
       "bbox": [
-        80.8846,
-        8.3216,
-        90.3234,
-        17.5824
+        81.0256,
+        8.1446,
+        90.4578,
+        17.4054
       ]
     }
   },
   {
-    "date": "2019-05-01",
-    "pass": "terra_day",
-    "observed_at": "2019-05-01T04:40:48+00:00",
+    "date": "2019-04-30",
+    "pass": "3RIMG 13:44Z",
+    "observed_at": "2019-04-30T13:44:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 14.212,
-      "lon": 83.866
+      "lat": 13.473,
+      "lon": 84.511
     },
     "truth": {
-      "lat": 14.134,
-      "lon": 84.022,
+      "lat": 13.358,
+      "lon": 84.684,
+      "wind_kt": 91.4,
+      "imd_category": "ESCS",
+      "t_number": 5.6
+    },
+    "fix": {
+      "lat": 13.347,
+      "lon": 84.64,
+      "detected": false,
+      "refined": true,
+      "confidence": 0.509,
+      "symmetry": 0.985,
+      "eye_detected": true,
+      "eye_temp_c": -36.78636169433594,
+      "ring_temp_c": -79.83917846679685,
+      "cold_fraction": 0.0084,
+      "reason": "no organised cold cloud mass: cold_fraction=0.008, symmetry=0.98"
+    },
+    "dvorak": {
+      "pattern": "EYE",
+      "t_number": 6.5,
+      "wind_kt": 111.8,
+      "imd_category": "ESCS",
+      "cdo_diameter_km": 105.9,
+      "rule": "EYE: eyewall -80C -> base T5.5; eye contrast 43C -> +1.0",
+      "t_number_smoothed": 3.0,
+      "wind_kt_smoothed": 39.6,
+      "imd_category_smoothed": "CS"
+    },
+    "centre_error_km": 4.9,
+    "first_guess_error_km": 22.7,
+    "last_fix_error_km": 14.1,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -79.9,
+      "bbox": [
+        79.7816,
+        8.843,
+        89.2406,
+        18.1037
+      ]
+    }
+  },
+  {
+    "date": "2019-04-30",
+    "pass": "3RIMG 20:58Z",
+    "observed_at": "2019-04-30T20:58:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 13.599,
+      "lon": 84.202
+    },
+    "truth": {
+      "lat": 13.698,
+      "lon": 84.252,
       "wind_kt": 95.0,
       "imd_category": "ESCS",
       "t_number": 5.7
     },
     "fix": {
-      "lat": 14.194,
-      "lon": 83.885,
-      "detected": true,
-      "refined": false,
-      "confidence": 0.255,
-      "symmetry": 0.259,
-      "eye_detected": false,
-      "eye_temp_c": -74.04998779296875,
-      "ring_temp_c": -79.42914428710935,
-      "cold_fraction": 0.1907,
-      "reason": "no eye pattern (best contrast 16C < 15C); held the motion-extrapolated first guess"
+      "lat": 13.653,
+      "lon": 84.258,
+      "detected": false,
+      "refined": true,
+      "confidence": 0.51,
+      "symmetry": 0.986,
+      "eye_detected": true,
+      "eye_temp_c": -35.300537109375,
+      "ring_temp_c": -80.98970642089841,
+      "cold_fraction": 0.0086,
+      "reason": "no organised cold cloud mass: cold_fraction=0.009, symmetry=0.99"
     },
     "dvorak": {
-      "pattern": "CDO",
-      "t_number": 5.5,
-      "wind_kt": 89.8,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 456.8,
-      "rule": "CDO: shield 457 km -> base T5.0; coldest -92C -> +0.50",
-      "t_number_smoothed": 5.0,
-      "wind_kt_smoothed": 79.2,
-      "imd_category_smoothed": "VSCS"
+      "pattern": "EYE",
+      "t_number": 6.5,
+      "wind_kt": 111.8,
+      "imd_category": "ESCS",
+      "cdo_diameter_km": 107.3,
+      "rule": "EYE: eyewall -81C -> base T5.5; eye contrast 46C -> +1.0",
+      "t_number_smoothed": 3.5,
+      "wind_kt_smoothed": 48.4,
+      "imd_category_smoothed": "SCS"
     },
-    "centre_error_km": 16.3,
-    "first_guess_error_km": 18.9,
-    "last_fix_error_km": 27.2,
+    "centre_error_km": 5.0,
+    "first_guess_error_km": 12.2,
+    "last_fix_error_km": 27.1,
     "scene": {
       "coverage": 1.0,
-      "min_c": -91.6,
+      "min_c": -81.0,
       "bbox": [
-        79.1214,
-        9.5816,
-        88.6106,
-        18.8424
+        79.4702,
+        8.9685,
+        88.9342,
+        18.2293
       ]
     }
   },
   {
     "date": "2019-05-01",
-    "pass": "aqua_day",
-    "observed_at": "2019-05-01T07:40:48+00:00",
+    "pass": "3RIMG 04:12Z",
+    "observed_at": "2019-05-01T04:12:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 14.284,
-      "lon": 83.972
+      "lat": 14.18,
+      "lon": 83.89
     },
     "truth": {
-      "lat": 14.396,
-      "lon": 84.028,
-      "wind_kt": 96.4,
+      "lat": 14.11,
+      "lon": 84.03,
+      "wind_kt": 95.0,
       "imd_category": "ESCS",
-      "t_number": 5.8
+      "t_number": 5.7
     },
     "fix": {
-      "lat": 14.266,
-      "lon": 83.991,
-      "detected": true,
-      "refined": false,
-      "confidence": 0.288,
-      "symmetry": 0.464,
-      "eye_detected": false,
-      "eye_temp_c": -71.54998779296875,
-      "ring_temp_c": -75.52081909179685,
-      "cold_fraction": 0.1716,
-      "reason": "no eye pattern (best contrast 12C < 15C); held the motion-extrapolated first guess"
-    },
-    "dvorak": {
-      "pattern": "CDO",
-      "t_number": 5.0,
-      "wind_kt": 79.2,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 376.8,
-      "rule": "CDO: shield 377 km -> base T4.5; coldest -85C -> +0.50",
-      "t_number_smoothed": 5.0,
-      "wind_kt_smoothed": 79.2,
-      "imd_category_smoothed": "VSCS"
-    },
-    "centre_error_km": 14.9,
-    "first_guess_error_km": 13.8,
-    "last_fix_error_km": 21.9,
-    "scene": {
-      "coverage": 0.763,
-      "min_c": -84.8,
-      "bbox": [
-        79.2259,
-        9.6536,
-        88.7181,
-        18.9144
-      ]
-    }
-  },
-  {
-    "date": "2019-05-02",
-    "pass": "terra_day",
-    "observed_at": "2019-05-02T04:40:48+00:00",
-    "first_guess": {
-      "lat": 16.446,
-      "lon": 84.912
-    },
-    "truth": {
-      "lat": 16.602,
-      "lon": 84.756,
-      "wind_kt": 108.9,
-      "imd_category": "ESCS",
-      "t_number": 6.4
-    },
-    "fix": {
-      "lat": 16.428,
-      "lon": 84.931,
-      "detected": true,
-      "refined": false,
-      "confidence": 0.265,
-      "symmetry": 0.332,
-      "eye_detected": false,
-      "eye_temp_c": -81.59999084472656,
-      "ring_temp_c": -83.26248779296873,
-      "cold_fraction": 0.1821,
-      "reason": "no eye pattern (best contrast 14C < 15C); held the motion-extrapolated first guess"
-    },
-    "dvorak": {
-      "pattern": "CDO",
-      "t_number": 5.0,
-      "wind_kt": 79.2,
-      "imd_category": "VSCS",
-      "cdo_diameter_km": 408.4,
-      "rule": "CDO: shield 408 km -> base T4.5; coldest -87C -> +0.50",
-      "t_number_smoothed": 5.0,
-      "wind_kt_smoothed": 79.2,
-      "imd_category_smoothed": "VSCS"
-    },
-    "centre_error_km": 26.8,
-    "first_guess_error_km": 24.0,
-    "last_fix_error_km": 79.5,
-    "scene": {
-      "coverage": 0.782,
-      "min_c": -87.2,
-      "bbox": [
-        80.1164,
-        11.8156,
-        89.7076,
-        21.0764
-      ]
-    }
-  },
-  {
-    "date": "2019-05-02",
-    "pass": "aqua_day",
-    "observed_at": "2019-05-02T07:40:48+00:00",
-    "first_guess": {
-      "lat": 17.052,
-      "lon": 84.856
-    },
-    "truth": {
-      "lat": 17.024,
-      "lon": 84.8,
-      "wind_kt": 111.4,
-      "imd_category": "ESCS",
-      "t_number": 6.5
-    },
-    "fix": {
-      "lat": 16.925,
-      "lon": 84.649,
-      "detected": true,
+      "lat": 14.053,
+      "lon": 84.02,
+      "detected": false,
       "refined": true,
-      "confidence": 0.572,
-      "symmetry": 0.633,
+      "confidence": 0.508,
+      "symmetry": 0.981,
       "eye_detected": true,
-      "eye_temp_c": -37.649993896484375,
-      "ring_temp_c": -83.45278015136716,
-      "cold_fraction": 0.1279,
-      "reason": "eye pattern; eye -37.6C vs eyewall -83.5C"
+      "eye_temp_c": -35.300537109375,
+      "ring_temp_c": -80.90201416015623,
+      "cold_fraction": 0.0087,
+      "reason": "no organised cold cloud mass: cold_fraction=0.009, symmetry=0.98"
+    },
+    "dvorak": {
+      "pattern": "EYE",
+      "t_number": 6.5,
+      "wind_kt": 111.8,
+      "imd_category": "ESCS",
+      "cdo_diameter_km": 107.6,
+      "rule": "EYE: eyewall -81C -> base T5.5; eye contrast 46C -> +1.0",
+      "t_number_smoothed": 4.0,
+      "wind_kt_smoothed": 57.2,
+      "imd_category_smoothed": "SCS"
+    },
+    "centre_error_km": 6.4,
+    "first_guess_error_km": 17.0,
+    "last_fix_error_km": 24.4,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -81.0,
+      "bbox": [
+        79.1461,
+        9.5496,
+        88.6339,
+        18.8104
+      ]
+    }
+  },
+  {
+    "date": "2019-05-01",
+    "pass": "3RIMG 11:26Z",
+    "observed_at": "2019-05-01T11:26:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 14.472,
+      "lon": 83.909
+    },
+    "truth": {
+      "lat": 14.834,
+      "lon": 84.091,
+      "wind_kt": 99.5,
+      "imd_category": "ESCS",
+      "t_number": 5.9
+    },
+    "fix": {
+      "lat": 14.852,
+      "lon": 84.076,
+      "detected": false,
+      "refined": true,
+      "confidence": 0.515,
+      "symmetry": 0.995,
+      "eye_detected": true,
+      "eye_temp_c": -33.25752258300781,
+      "ring_temp_c": -82.10405578613279,
+      "cold_fraction": 0.009,
+      "reason": "no organised cold cloud mass: cold_fraction=0.009, symmetry=0.99"
     },
     "dvorak": {
       "pattern": "EYE",
       "t_number": 7.0,
       "wind_kt": 123.2,
       "imd_category": "SuCS",
-      "cdo_diameter_km": 402.5,
-      "rule": "EYE: eyewall -83C -> base T6.0; eye contrast 46C -> +1.0",
-      "t_number_smoothed": 5.5,
-      "wind_kt_smoothed": 89.8,
-      "imd_category_smoothed": "VSCS"
-    },
-    "centre_error_km": 19.4,
-    "first_guess_error_km": 6.7,
-    "last_fix_error_km": 24.8,
-    "scene": {
-      "coverage": 1.0,
-      "min_c": -92.8,
-      "bbox": [
-        80.0452,
-        12.4216,
-        89.6668,
-        21.6824
-      ]
-    }
-  },
-  {
-    "date": "2019-05-03",
-    "pass": "terra_day",
-    "observed_at": "2019-05-03T04:40:48+00:00",
-    "first_guess": {
-      "lat": 19.724,
-      "lon": 85.89
-    },
-    "truth": {
-      "lat": 19.958,
-      "lon": 85.812,
-      "wind_kt": 89.4,
-      "imd_category": "VSCS",
-      "t_number": 5.5
-    },
-    "fix": {
-      "lat": 19.706,
-      "lon": 85.909,
-      "detected": false,
-      "refined": false,
-      "confidence": 0.089,
-      "symmetry": 0.202,
-      "eye_detected": false,
-      "eye_temp_c": -68.44999694824219,
-      "ring_temp_c": -71.67777099609373,
-      "cold_fraction": 0.0389,
-      "reason": "no eye pattern (best contrast 5C < 15C); held the motion-extrapolated first guess"
-    },
-    "dvorak": {
-      "pattern": "CDO",
-      "t_number": 3.5,
-      "wind_kt": 48.4,
-      "imd_category": "SCS",
-      "cdo_diameter_km": 179.6,
-      "rule": "CDO: shield 180 km -> base T3.0; coldest -87C -> +0.50",
-      "t_number_smoothed": 5.0,
-      "wind_kt_smoothed": 79.2,
-      "imd_category_smoothed": "VSCS"
-    },
-    "centre_error_km": 29.7,
-    "first_guess_error_km": 27.2,
-    "last_fix_error_km": 100.5,
-    "scene": {
-      "coverage": 1.0,
-      "min_c": -87.2,
-      "bbox": [
-        81.004,
-        15.0936,
-        90.776,
-        24.3544
-      ]
-    }
-  },
-  {
-    "date": "2019-05-03",
-    "pass": "aqua_day",
-    "observed_at": "2019-05-03T07:40:48+00:00",
-    "first_guess": {
-      "lat": 20.508,
-      "lon": 86.012
-    },
-    "truth": {
-      "lat": 20.48,
-      "lon": 86.068,
-      "wind_kt": 80.8,
-      "imd_category": "VSCS",
-      "t_number": 5.1
-    },
-    "fix": {
-      "lat": 20.49,
-      "lon": 86.031,
-      "detected": true,
-      "refined": false,
-      "confidence": 0.135,
-      "symmetry": 0.27,
-      "eye_detected": false,
-      "eye_temp_c": -74.69999694824219,
-      "ring_temp_c": -75.28887023925779,
-      "cold_fraction": 0.0679,
-      "reason": "no eye pattern (best contrast 9C < 15C); held the motion-extrapolated first guess"
-    },
-    "dvorak": {
-      "pattern": "CDO",
-      "t_number": 4.0,
-      "wind_kt": 57.2,
-      "imd_category": "SCS",
-      "cdo_diameter_km": 250.7,
-      "rule": "CDO: shield 251 km -> base T3.5; coldest -86C -> +0.50",
+      "cdo_diameter_km": 109.6,
+      "rule": "EYE: eyewall -82C -> base T6.0; eye contrast 49C -> +1.0",
       "t_number_smoothed": 4.5,
       "wind_kt_smoothed": 67.8,
       "imd_category_smoothed": "VSCS"
     },
-    "centre_error_km": 4.0,
-    "first_guess_error_km": 6.6,
-    "last_fix_error_km": 35.6,
+    "centre_error_km": 2.5,
+    "first_guess_error_km": 44.6,
+    "last_fix_error_km": 70.8,
     "scene": {
-      "coverage": 0.817,
-      "min_c": -85.9,
+      "coverage": 1.0,
+      "min_c": -82.1,
       "bbox": [
-        81.1014,
-        15.8776,
-        90.9226,
-        25.1384
+        79.1594,
+        9.8413,
+        88.6595,
+        19.102
       ]
     }
   },
   {
-    "date": "2019-05-04",
-    "pass": "terra_day",
-    "observed_at": "2019-05-04T04:40:48+00:00",
+    "date": "2019-05-01",
+    "pass": "3RIMG 18:40Z",
+    "observed_at": "2019-05-01T18:40:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 24.058,
-      "lon": 89.358
+      "lat": 15.233,
+      "lon": 84.211
     },
     "truth": {
-      "lat": 24.136,
-      "lon": 89.28,
-      "wind_kt": 28.3,
-      "imd_category": "DD",
-      "t_number": 2.2
+      "lat": 15.278,
+      "lon": 84.244,
+      "wind_kt": 100.6,
+      "imd_category": "ESCS",
+      "t_number": 6.0
     },
     "fix": {
-      "lat": 24.04,
-      "lon": 89.378,
+      "lat": 15.251,
+      "lon": 84.192,
+      "detected": false,
+      "refined": true,
+      "confidence": 0.508,
+      "symmetry": 0.98,
+      "eye_detected": true,
+      "eye_temp_c": -32.70033264160156,
+      "ring_temp_c": -82.37235107421873,
+      "cold_fraction": 0.0091,
+      "reason": "no organised cold cloud mass: cold_fraction=0.009, symmetry=0.98"
+    },
+    "dvorak": {
+      "pattern": "EYE",
+      "t_number": 7.0,
+      "wind_kt": 123.2,
+      "imd_category": "SuCS",
+      "cdo_diameter_km": 110.4,
+      "rule": "EYE: eyewall -82C -> base T6.0; eye contrast 50C -> +1.0",
+      "t_number_smoothed": 5.0,
+      "wind_kt_smoothed": 79.2,
+      "imd_category_smoothed": "VSCS"
+    },
+    "centre_error_km": 6.3,
+    "first_guess_error_km": 6.1,
+    "last_fix_error_km": 9.8,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -82.5,
+      "bbox": [
+        79.4443,
+        10.603,
+        88.978,
+        19.8637
+      ]
+    }
+  },
+  {
+    "date": "2019-05-02",
+    "pass": "3RIMG 01:54Z",
+    "observed_at": "2019-05-02T01:54:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 16.122,
+      "lon": 84.727
+    },
+    "truth": {
+      "lat": 16.185,
+      "lon": 84.663,
+      "wind_kt": 106.6,
+      "imd_category": "ESCS",
+      "t_number": 6.3
+    },
+    "fix": {
+      "lat": 16.212,
+      "lon": 84.745,
+      "detected": false,
+      "refined": true,
+      "confidence": 0.504,
+      "symmetry": 0.972,
+      "eye_detected": true,
+      "eye_temp_c": -30.100143432617188,
+      "ring_temp_c": -83.58988037109373,
+      "cold_fraction": 0.0092,
+      "reason": "no organised cold cloud mass: cold_fraction=0.009, symmetry=0.97"
+    },
+    "dvorak": {
+      "pattern": "EYE",
+      "t_number": 7.0,
+      "wind_kt": 123.2,
+      "imd_category": "SuCS",
+      "cdo_diameter_km": 110.8,
+      "rule": "EYE: eyewall -84C -> base T6.0; eye contrast 53C -> +1.0",
+      "t_number_smoothed": 5.5,
+      "wind_kt_smoothed": 89.8,
+      "imd_category_smoothed": "VSCS"
+    },
+    "centre_error_km": 9.3,
+    "first_guess_error_km": 9.7,
+    "last_fix_error_km": 32.3,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -84.1,
+      "bbox": [
+        79.939,
+        11.4913,
+        89.5143,
+        20.752
+      ]
+    }
+  },
+  {
+    "date": "2019-05-02",
+    "pass": "3RIMG 09:08Z",
+    "observed_at": "2019-05-02T09:08:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 17.27,
+      "lon": 84.904
+    },
+    "truth": {
+      "lat": 17.218,
+      "lon": 84.8,
+      "wind_kt": 112.6,
+      "imd_category": "ESCS",
+      "t_number": 6.5
+    },
+    "fix": {
+      "lat": 17.216,
+      "lon": 84.697,
+      "detected": false,
+      "refined": true,
+      "confidence": 0.493,
+      "symmetry": 0.948,
+      "eye_detected": true,
+      "eye_temp_c": -27.314224243164062,
+      "ring_temp_c": -83.32675781249998,
+      "cold_fraction": 0.0094,
+      "reason": "no organised cold cloud mass: cold_fraction=0.009, symmetry=0.95"
+    },
+    "dvorak": {
+      "pattern": "EYE",
+      "t_number": 7.0,
+      "wind_kt": 123.2,
+      "imd_category": "SuCS",
+      "cdo_diameter_km": 112.2,
+      "rule": "EYE: eyewall -83C -> base T6.0; eye contrast 56C -> +1.0",
+      "t_number_smoothed": 6.0,
+      "wind_kt_smoothed": 101.2,
+      "imd_category_smoothed": "ESCS"
+    },
+    "centre_error_km": 10.9,
+    "first_guess_error_km": 12.5,
+    "last_fix_error_km": 46.2,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -85.8,
+      "bbox": [
+        80.0879,
+        12.6396,
+        89.7209,
+        21.9004
+      ]
+    }
+  },
+  {
+    "date": "2019-05-02",
+    "pass": "3RIMG 16:22Z",
+    "observed_at": "2019-05-02T16:22:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 18.182,
+      "lon": 84.8
+    },
+    "truth": {
+      "lat": 18.109,
+      "lon": 84.946,
+      "wind_kt": 115.0,
+      "imd_category": "ESCS",
+      "t_number": 6.6
+    },
+    "fix": {
+      "lat": 18.128,
+      "lon": 84.857,
+      "detected": false,
+      "refined": true,
+      "confidence": 0.503,
+      "symmetry": 0.968,
+      "eye_detected": true,
+      "eye_temp_c": -26.199844360351562,
+      "ring_temp_c": -85.85471191406248,
+      "cold_fraction": 0.0095,
+      "reason": "no organised cold cloud mass: cold_fraction=0.010, symmetry=0.97"
+    },
+    "dvorak": {
+      "pattern": "EYE",
+      "t_number": 7.0,
+      "wind_kt": 123.2,
+      "imd_category": "SuCS",
+      "cdo_diameter_km": 112.7,
+      "rule": "EYE: eyewall -86C -> base T6.0; eye contrast 60C -> +1.0",
+      "t_number_smoothed": 6.5,
+      "wind_kt_smoothed": 111.8,
+      "imd_category_smoothed": "ESCS"
+    },
+    "centre_error_km": 9.6,
+    "first_guess_error_km": 17.4,
+    "last_fix_error_km": 58.5,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -86.6,
+      "bbox": [
+        79.9589,
+        13.5518,
+        89.6411,
+        22.8126
+      ]
+    }
+  },
+  {
+    "date": "2019-05-02",
+    "pass": "3RIMG 23:36Z",
+    "observed_at": "2019-05-02T23:36:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 18.953,
+      "lon": 85.187
+    },
+    "truth": {
+      "lat": 19.047,
+      "lon": 85.467,
+      "wind_kt": 105.7,
+      "imd_category": "ESCS",
+      "t_number": 6.2
+    },
+    "fix": {
+      "lat": 19.044,
+      "lon": 85.548,
+      "detected": false,
+      "refined": true,
+      "confidence": 0.504,
+      "symmetry": 0.97,
+      "eye_detected": true,
+      "eye_temp_c": -30.471603393554688,
+      "ring_temp_c": -83.59505310058591,
+      "cold_fraction": 0.0094,
+      "reason": "no organised cold cloud mass: cold_fraction=0.009, symmetry=0.97"
+    },
+    "dvorak": {
+      "pattern": "EYE",
+      "t_number": 7.0,
+      "wind_kt": 123.2,
+      "imd_category": "SuCS",
+      "cdo_diameter_km": 112.2,
+      "rule": "EYE: eyewall -84C -> base T6.0; eye contrast 53C -> +1.0",
+      "t_number_smoothed": 7.0,
+      "wind_kt_smoothed": 123.2,
+      "imd_category_smoothed": "SuCS"
+    },
+    "centre_error_km": 8.5,
+    "first_guess_error_km": 31.2,
+    "last_fix_error_km": 96.2,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -84.0,
+      "bbox": [
+        80.3237,
+        14.323,
+        90.0497,
+        23.5837
+      ]
+    }
+  },
+  {
+    "date": "2019-05-03",
+    "pass": "3RIMG 06:50Z",
+    "observed_at": "2019-05-03T06:50:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 20.353,
+      "lon": 85.956
+    },
+    "truth": {
+      "lat": 20.339,
+      "lon": 85.983,
+      "wind_kt": 82.9,
+      "imd_category": "VSCS",
+      "t_number": 5.2
+    },
+    "fix": {
+      "lat": 20.335,
+      "lon": 85.975,
+      "detected": false,
+      "refined": true,
+      "confidence": 0.515,
+      "symmetry": 0.996,
+      "eye_detected": true,
+      "eye_temp_c": -40.50091552734375,
+      "ring_temp_c": -77.46086730957029,
+      "cold_fraction": 0.0085,
+      "reason": "no organised cold cloud mass: cold_fraction=0.008, symmetry=1.00"
+    },
+    "dvorak": {
+      "pattern": "EYE",
+      "t_number": 6.5,
+      "wind_kt": 111.8,
+      "imd_category": "ESCS",
+      "cdo_diameter_km": 106.3,
+      "rule": "EYE: eyewall -77C -> base T5.5; eye contrast 37C -> +1.0",
+      "t_number_smoothed": 6.5,
+      "wind_kt_smoothed": 111.8,
+      "imd_category_smoothed": "ESCS"
+    },
+    "centre_error_km": 1.0,
+    "first_guess_error_km": 3.3,
+    "last_fix_error_km": 17.7,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -77.5,
+      "bbox": [
+        81.0499,
+        15.7224,
+        90.8612,
+        24.9832
+      ]
+    }
+  },
+  {
+    "date": "2019-05-03",
+    "pass": "3RIMG 14:04Z",
+    "observed_at": "2019-05-03T14:04:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 21.544,
+      "lon": 86.707
+    },
+    "truth": {
+      "lat": 21.51,
+      "lon": 86.81,
+      "wind_kt": 64.8,
+      "imd_category": "VSCS",
+      "t_number": 4.4
+    },
+    "fix": {
+      "lat": 21.526,
+      "lon": 86.726,
       "detected": false,
       "refined": false,
-      "confidence": 0.031,
-      "symmetry": 0.007,
+      "confidence": 0.251,
+      "symmetry": 0.972,
       "eye_detected": false,
-      "eye_temp_c": -21.949996948242188,
-      "ring_temp_c": -41.45279541015623,
-      "cold_fraction": 0.0293,
+      "eye_temp_c": -48.67295837402344,
+      "ring_temp_c": -72.1263488769531,
+      "cold_fraction": 0.0079,
       "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
     },
     "dvorak": {
-      "pattern": "CDO",
-      "t_number": 3.5,
-      "wind_kt": 48.4,
-      "imd_category": "SCS",
-      "cdo_diameter_km": 184.4,
-      "rule": "CDO: shield 184 km -> base T3.0; coldest -84C -> +0.50",
-      "t_number_smoothed": 4.0,
-      "wind_kt_smoothed": 57.2,
-      "imd_category_smoothed": "SCS"
+      "pattern": "EMBEDDED_CENTER",
+      "t_number": 2.0,
+      "wind_kt": 26.4,
+      "imd_category": "D",
+      "cdo_diameter_km": 102.8,
+      "rule": "EMBEDDED_CENTER: shield 103 km -> base T2.5; coldest -72C -> +0.00",
+      "t_number_smoothed": 6.0,
+      "wind_kt_smoothed": 101.2,
+      "imd_category_smoothed": "ESCS"
     },
-    "centre_error_km": 14.6,
-    "first_guess_error_km": 11.7,
-    "last_fix_error_km": 130.7,
+    "centre_error_km": 8.9,
+    "first_guess_error_km": 11.4,
+    "last_fix_error_km": 47.0,
     "scene": {
-      "coverage": 0.869,
-      "min_c": -84.1,
+      "coverage": 1.0,
+      "min_c": -72.4,
       "bbox": [
-        84.3211,
-        19.4276,
-        94.3949,
-        28.6884
+        81.7618,
+        16.9141,
+        91.6515,
+        26.1748
+      ]
+    }
+  },
+  {
+    "date": "2019-05-03",
+    "pass": "3RIMG 21:18Z",
+    "observed_at": "2019-05-03T21:18:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 22.595,
+      "lon": 87.895
+    },
+    "truth": {
+      "lat": 22.705,
+      "lon": 88.005,
+      "wind_kt": 46.8,
+      "imd_category": "CS",
+      "t_number": 3.4
+    },
+    "fix": {
+      "lat": 22.577,
+      "lon": 87.914,
+      "detected": false,
+      "refined": false,
+      "confidence": 0.23,
+      "symmetry": 0.919,
+      "eye_detected": false,
+      "eye_temp_c": -56.65928649902344,
+      "ring_temp_c": -66.21398010253904,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
+    },
+    "dvorak": {
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -67C",
+      "t_number_smoothed": 5.5,
+      "wind_kt_smoothed": 89.8,
+      "imd_category_smoothed": "VSCS"
+    },
+    "centre_error_km": 17.0,
+    "first_guess_error_km": 16.6,
+    "last_fix_error_km": 91.5,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -67.4,
+      "bbox": [
+        82.9133,
+        17.9646,
+        92.8767,
+        27.2254
       ]
     }
   },
   {
     "date": "2019-05-04",
-    "pass": "aqua_day",
-    "observed_at": "2019-05-04T07:40:48+00:00",
+    "pass": "3RIMG 04:32Z",
+    "observed_at": "2019-05-04T04:32:00+00:00",
+    "time_is_exact": true,
     "first_guess": {
-      "lat": 24.736,
-      "lon": 89.78
+      "lat": 24.031,
+      "lon": 89.331
     },
     "truth": {
-      "lat": 24.624,
-      "lon": 89.836,
-      "wind_kt": 23.6,
-      "imd_category": "D",
-      "t_number": 1.7
+      "lat": 24.107,
+      "lon": 89.256,
+      "wind_kt": 28.7,
+      "imd_category": "DD",
+      "t_number": 2.3
     },
     "fix": {
-      "lat": 24.718,
-      "lon": 89.8,
+      "lat": 24.013,
+      "lon": 89.351,
       "detected": false,
       "refined": false,
-      "confidence": 0.019,
-      "symmetry": 0.045,
+      "confidence": 0.235,
+      "symmetry": 0.942,
       "eye_detected": false,
-      "eye_temp_c": 10.050018310546875,
-      "ring_temp_c": -37.91112365722654,
-      "cold_fraction": 0.0077,
-      "reason": "no eye pattern (best contrast -2C < 15C); held the motion-extrapolated first guess"
+      "eye_temp_c": -62.41685485839844,
+      "ring_temp_c": -62.5716613769531,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
     },
     "dvorak": {
-      "pattern": "EMBEDDED_CENTER",
-      "t_number": 2.2,
-      "wind_kt": 28.6,
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
       "imd_category": "DD",
-      "cdo_diameter_km": 100.6,
-      "rule": "EMBEDDED_CENTER: shield 101 km -> base T2.5; coldest -80C -> +0.25",
-      "t_number_smoothed": 3.5,
-      "wind_kt_smoothed": 48.4,
-      "imd_category_smoothed": "SCS"
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -65C",
+      "t_number_smoothed": 5.0,
+      "wind_kt_smoothed": 79.2,
+      "imd_category_smoothed": "VSCS"
     },
-    "centre_error_km": 11.0,
-    "first_guess_error_km": 13.6,
-    "last_fix_error_km": 42.1,
+    "centre_error_km": 14.2,
+    "first_guess_error_km": 11.4,
+    "last_fix_error_km": 126.6,
     "scene": {
       "coverage": 1.0,
-      "min_c": -80.3,
+      "min_c": -64.8,
       "bbox": [
-        84.716,
-        20.1056,
-        94.844,
-        29.3664
+        84.2953,
+        19.4007,
+        94.3669,
+        28.6615
+      ]
+    }
+  },
+  {
+    "date": "2019-05-04",
+    "pass": "3RIMG 11:46Z",
+    "observed_at": "2019-05-04T11:46:00+00:00",
+    "time_is_exact": true,
+    "first_guess": {
+      "lat": 25.553,
+      "lon": 90.461
+    },
+    "truth": {
+      "lat": 25.169,
+      "lon": 90.653,
+      "wind_kt": 20.2,
+      "imd_category": "D",
+      "t_number": 1.0
+    },
+    "fix": {
+      "lat": 25.535,
+      "lon": 90.481,
+      "detected": false,
+      "refined": false,
+      "confidence": 0.174,
+      "symmetry": 0.697,
+      "eye_detected": false,
+      "eye_temp_c": -35.85771179199219,
+      "ring_temp_c": -50.7882141113281,
+      "cold_fraction": 0.0,
+      "reason": "no eye pattern (best contrast -infC < 15C); held the motion-extrapolated first guess"
+    },
+    "dvorak": {
+      "pattern": "SHEAR",
+      "t_number": 2.5,
+      "wind_kt": 30.8,
+      "imd_category": "DD",
+      "cdo_diameter_km": 0.0,
+      "rule": "SHEAR: exposed/asymmetric centre, coldest -69C",
+      "t_number_smoothed": 4.5,
+      "wind_kt_smoothed": 67.8,
+      "imd_category_smoothed": "VSCS"
+    },
+    "centre_error_km": 44.1,
+    "first_guess_error_km": 46.8,
+    "last_fix_error_km": 144.4,
+    "scene": {
+      "coverage": 1.0,
+      "min_c": -68.9,
+      "bbox": [
+        85.3631,
+        20.923,
+        95.5591,
+        30.1837
       ]
     }
   }
