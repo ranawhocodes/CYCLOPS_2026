@@ -8,9 +8,12 @@ before you present — it is the part that decides the room.
 ## Before you start
 
 ```bash
-make demo      # API :8000, console :5180
-make smoke     # verify every path before anyone is watching
+make demo      # API :8000, console :5180  — ready in about 15s
+make smoke     # 10 checks; run this before anyone is watching
 ```
+
+`make demo` uses `nohup`/`disown`, so the services survive the launching terminal
+closing or an SSH session dropping. `make stop` kills them by recorded PID.
 
 Open <http://localhost:5180>. The console opens on a cyclone already replaying.
 
@@ -233,6 +236,7 @@ so uncertainty is per-case rather than per-lead-time.
 | Console shows another app | You are on 5173. Use **5180** |
 | Real-data view empty | `make cases` has not been run, or `artifacts/*_analysis.json` is missing |
 | Asked for a metric you don't have | "That's in `artifacts/`, let me pull it up" — do not guess |
+| Terminal closed by accident | Services survive it; just reopen the browser |
 
 ---
 

@@ -31,9 +31,15 @@ for p in "$API_PORT" "$CONSOLE_PORT"; do
 done
 
 mkdir -p .run
-PYTHONPATH=src .venv/bin/uvicorn api.main:app \
+# nohup + disown so the services survive this shell exiting. With a plain `&`
+# they take SIGHUP when the launching terminal closes or an SSH session drops —
+# which is a demo dying for no reason anyone can see.
+nohup env PYTHONPATH=src .venv/bin/uvicorn api.main:app \
   --host 127.0.0.1 --port "$API_PORT" > .run/api.log 2>&1 &
-echo "api starting (pid $!)…"
+API_PID=$!
+echo "$API_PID" > .run/api.pid
+disown "$API_PID" 2>/dev/null || true
+echo "api starting (pid $API_PID)…"
 
 for i in $(seq 1 90); do
   curl -fsS "http://127.0.0.1:$API_PORT/v1/health" >/dev/null 2>&1 && break
@@ -42,8 +48,13 @@ for i in $(seq 1 90); do
 done
 echo "api ready      →  http://127.0.0.1:$API_PORT/docs"
 
-(cd console && CYCLOPS_CONSOLE_PORT="$CONSOLE_PORT" CYCLOPS_API_PORT="$API_PORT" \
-   npm run dev > ../.run/console.log 2>&1 &)
+cd console
+nohup env CYCLOPS_CONSOLE_PORT="$CONSOLE_PORT" CYCLOPS_API_PORT="$API_PORT" \
+   npm run dev > ../.run/console.log 2>&1 &
+CONSOLE_PID=$!
+echo "$CONSOLE_PID" > ../.run/console.pid
+disown "$CONSOLE_PID" 2>/dev/null || true
+cd ..
 for i in $(seq 1 60); do
   curl -fsS "http://127.0.0.1:$CONSOLE_PORT" >/dev/null 2>&1 && break
   sleep 1

@@ -129,7 +129,4 @@ validate-map:  ## validate the map style + bundled basemap without a browser
 
 .PHONY: offline-check
 offline-check:  ## assert the console makes no external network requests
-	@grep -rniE "https?://(?!localhost|127\.0\.0\.1)" console/src console/index.html \
-	  --include='*.ts' --include='*.tsx' --include='*.html' -P \
-	  && (echo "FAIL: external URL found in console source" && exit 1) \
-	  || echo "OK: console references no external hosts"
+	python3 scripts/offline_check.py
