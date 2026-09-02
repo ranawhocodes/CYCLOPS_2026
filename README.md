@@ -3,51 +3,48 @@
 **Cyclone Observation, Prediction & Explainability System**
 SIH 2026 · PS 26070 · Ministry of Earth Sciences / India Meteorological Department
 
-AI/ML identification, classification and nowcasting of tropical cyclone patterns
-in the North Indian Ocean, with explainability and honest uncertainty.
+Identification, classification and nowcasting of tropical cyclones in the North
+Indian Ocean, from real satellite data, with explainability and honest
+uncertainty.
+
+```bash
+make setup && make data && make train    # build it
+make cases                               # real-imagery analysis, 3 storms
+make demo                                # API :8000 + console :5180
+```
 
 ---
 
-## What this build actually is
+## What is real
 
-This is the **MVP**, targeted at the internal university demo day. It is a
-complete end-to-end system — data → model → API → console — not a mock-up. But
-what is real and what is a placeholder is stated everywhere, including on the
-console itself, because that distinction is the difference between a credible
-submission and a caught one.
-
-| Layer | Status |
+| | status |
 |---|---|
-| Best-track positions, timestamps, intensity labels | **Real** — IBTrACS v04r01, `NEWDELHI_WIND`, 3-min sustained (IMD convention) |
-| Track & intensity nowcast, baselines, uncertainty cone | **Real** — trained and evaluated on the above |
-| Satellite infrared / water-vapour imagery | **Synthetic** — physically parameterised from best track |
-| Scatterometer surface winds | **Synthetic** — modified-Rankine vortex with a partial swath |
-| Environmental fields (SST, shear) | **Climatology proxy** — real providers behind an interface |
+| Best track — positions, times, intensity | **Real.** IBTrACS v04r01, `NEWDELHI_WIND`, 3-min sustained (IMD convention) |
+| Satellite infrared — Fani, Amphan, Mocha | **Real.** MODIS Band 31 (11 µm) via NASA GIBS |
+| Track & intensity nowcast, baselines, cone | **Real.** Trained and scored on the above |
+| INSAT-3D/3DR access | **Search working**, downloads need a MOSDAC account |
+| Fusion CNN training imagery | **Synthetic** — placeholder for Digital Typhoon |
+| SST, wind shear | **Climatology proxy** — real providers behind an interface |
 
-The imagery is synthetic because Digital Typhoon and MOSDAC/INSAT both need
-registration with weeks of lead time. Rather than block the whole pipeline on
-paperwork, the renderer produces scenes on the **same tensor contract** the real
-readers will produce, so swapping in the archive is a change to one loader.
-
-**Any intensity accuracy figure from this build measures how well the model
-inverts the renderer, not how well it reads a satellite.** That is stated in the
-metrics file, in the API response, and on screen.
+Everything is labelled at the point of use: the API reports data status on
+`/v1/health`, the console shows a banner, and every metrics file carries the
+provenance of its inputs. See [docs/DATA-STATUS.md](docs/DATA-STATUS.md).
 
 ---
 
-## Results — real data, held-out storms
+## Results
 
-31 storms from seasons 2019, 2020 and 2023. Split by season; storm IDs are
-disjoint across splits and a test asserts it.
+### Nowcast — real data, held-out storms
 
-### Forecast skill against baselines
+31 storms, seasons 2019/2020/2023. Split by season; storm IDs are disjoint
+across splits and a test asserts it.
 
-| Lead | n | Persistence | Climatology | **CYCLOPS** | Skill |
-|---|---|---|---|---|---|
-| +6 h | 607 | 34.6 km | 62.9 km | **33.3 km** | +3.8% |
-| +12 h | 576 | 70.5 km | 120.8 km | **65.1 km** | +7.6% |
-| +18 h | 546 | 108.8 km | 177.1 km | **98.6 km** | +9.3% |
-| +24 h | 517 | 153.7 km | 230.5 km | **137.3 km** | +10.7% |
+| Lead | Persistence | Climatology | **CYCLOPS** | Skill |
+|---|---|---|---|---|
+| +6 h | 34.6 km | 62.9 km | **33.3 km** | +3.8% |
+| +12 h | 70.5 km | 120.8 km | **65.1 km** | +7.6% |
+| +18 h | 108.8 km | 177.1 km | **98.6 km** | +9.3% |
+| +24 h | 153.7 km | 230.5 km | **137.3 km** | +10.7% |
 
 | Lead | Persistence MAE | **CYCLOPS MAE** | Skill |
 |---|---|---|---|
@@ -56,11 +53,9 @@ disjoint across splits and a test asserts it.
 | +18 h | 11.58 kt | **7.81 kt** | +32.6% |
 | +24 h | 15.02 kt | **9.94 kt** | +33.8% |
 
-### Uncertainty cone calibration
-
-Radii are the 67th percentile of the model's own **validation** position errors
-(NHC convention). Coverage is then measured on the **test** storms — a disjoint
-set, so this is a real check and not a restatement of the calibration.
+**Uncertainty cone.** Radii are the 67th percentile of the model's own
+*validation* position errors (NHC convention); coverage is then measured on the
+*test* storms, a disjoint set.
 
 | Lead | Radius | Measured coverage | Target |
 |---|---|---|---|
@@ -69,215 +64,201 @@ set, so this is a real check and not a restatement of the calibration.
 | +18 h | 111.8 km | 66.1% | 67% |
 | +24 h | 158.3 km | 65.8% | 67% |
 
-### Fusion ablation
+### Identification & classification — real MODIS imagery
+
+Objective Dvorak on real 11 µm brightness temperature. Thresholds were chosen on
+Fani, then applied **unchanged** to Amphan and Mocha, so those two are the
+out-of-sample test.
+
+| | Fani 2019 *(threshold source)* | Amphan 2020 *(unseen)* | Mocha 2023 *(unseen)* |
+|---|---|---|---|
+| scenes | 18 | 12 | 12 |
+| centre fix | 19.5 km | 17.7 km | 25.2 km |
+| vs motion extrapolation | −7.1% | **+15.4%** | −1.3% |
+| vs last best-track fix | **+59.5%** | **+59.7%** | **+51.4%** |
+| eyes detected | 1 | 2 | 0 |
+| intensity RMSE | 28.4 kt | 33.1 kt | 26.2 kt |
+| bias | **+11.1 kt** | **+11.0 kt** | **+9.1 kt** |
+| category within-one | 50% | 67% | 50% |
+
+### Fusion ablation — synthetic imagery
 
 Four models trained identically, scored on the same held-out storms.
-**Synthetic imagery** — this shows the fusion machinery works, not that the
-system reads real satellites. See [`docs/DATA-STATUS.md`](docs/DATA-STATUS.md).
 
-| Variant | RMSE | MAE | Bias | Category acc. | Within one | vs IR-only |
-|---|---|---|---|---|---|---|
-| **fusion** (IR + wind + env) | 7.21 kt | 5.00 kt | -1.36 kt | 64.9% | 89.6% | +11.6% |
-| IR + wind | 7.49 kt | 5.26 kt | -1.45 kt | 64.0% | 89.9% | +8.2% |
-| IR + env | 8.11 kt | 6.03 kt | -1.47 kt | 56.4% | 87.8% | +0.6% |
-| IR only | 8.16 kt | 6.25 kt | +0.25 kt | 48.7% | 83.6% | +0.0% |
+| variant | RMSE | category acc. | within-one |
+|---|---|---|---|
+| **fusion** | **7.21 kt** | **64.9%** | 89.6% |
+| ir + wind | 7.49 kt | 64.0% | 89.9% |
+| ir + env | 8.11 kt | 56.4% | 87.8% |
+| ir only | 8.16 kt | 48.7% | 83.6% |
 
-The wind branch carries the gain, which is what the physical argument predicts:
-a scatterometer measures the ocean surface directly, and that is exactly the
-information infrared lacks. Environment alone adds almost nothing here because
-the environmental fields in this build are climatological proxies — the same
-finding that motivates WeatherNext 2.
+Fusion beats IR-only by 11.6%. **The imagery is synthetic**, so this measures
+that the fusion machinery works — not that the system reads satellites well.
 
-Centre-fix error: **median 24.4 km**, 90th percentile
-80.8 km (n=633), against a 60 km target.
+---
 
-### Reading these numbers honestly
+## Reading these numbers honestly
 
-**Intensity skill is strong (+34% at 24 h). Track skill is modest (+11%).**
-That gap is not a bug and it is the most interesting finding in the build.
+**Intensity nowcast is the strongest result** (+33.8% over persistence at 24 h)
+and it is entirely real data.
 
-Intensity is largely determined by the storm's own structure and recent history,
-which the model can see. Track is determined by the synoptic steering flow the
-storm sits in — and this build's steering comes from an analytic climatology
-that knows "storms near 15 N in May tend to go north-northwest", not where the
-subtropical ridge actually is this week.
+**Track nowcast skill is modest** (+10.7%). The diagnosis is specific: the
+steering flow is a climatology that knows "storms near 15 N in May tend to go
+north-northwest", not where the ridge actually is this week. That is what
+WeatherNext 2 fixes, and why the environment layer is an interface.
 
-That diagnosis points at a specific fix, which is why the environment layer is
-an interface rather than a hard-coded function. See **WeatherNext 2** below.
+**The Dvorak bias is a real, transferable finding.** +11.07, +11.03, +9.08 kt on
+three independent storms. Leave-one-storm-out — derive the offset from two, apply
+to the third — cuts RMSE 5.7–7.9%. Consistent with Dvorak's Atlantic-tuned tables
+against IMD's North Indian Ocean adjustments, which was predicted in the module
+docstring before it was measured. But bias removal only takes pooled RMSE from
+29.2 to 27.3 kt: **scatter dominates, so a calibration offset is not the fix.**
+
+**Centre-fixing does not reliably beat motion extrapolation.** +15%, −1%, −7%.
+The defensible claim is the one that holds everywhere: **+51 to +60% over the
+last best-track fix.** [docs/FINDING-eye-detection.md](docs/FINDING-eye-detection.md)
+traces why, and it is the most interesting result in the project.
+
+---
+
+## The finding that shaped the roadmap
+
+Mocha detected zero eyes across 12 passes. Chasing that produced the answer to a
+bigger question — why IR centre-fixing cannot beat motion extrapolation:
+
+| error source | contribution |
+|---|---|
+| 4 km nearest-neighbour centring | ~4–6 km |
+| ±30 min **estimated** overpass time × ~12 kt | ~11 km |
+| quadrature floor | ~12–13 km |
+| observed | ~33 km |
+
+The motion-extrapolated first guess is already accurate to 10–20 km. There is
+almost no headroom. **Both dominant terms come from MODIS being polar-orbiting**,
+so the ceiling is temporal, not algorithmic — which is what INSAT-3D fixes.
+
+---
+
+## INSAT-3D / 3DR
+
+Search works today with no account. Downloads need a free MOSDAC account.
+
+```bash
+make insat-status     # what is reachable
+make insat-plan       # size a download before committing
+make insat-selftest   # verify the HDF5 reader, 14 checks
+make insat-demo       # full pipeline on the INSAT path
+```
+
+| | MODIS (current) | INSAT-3DR |
+|---|---|---|
+| Fani-window granules | 18 usable day passes | **1,947** |
+| cadence | ~4 per day | 8.1 min measured |
+| timestamp | **estimated**, ±30 min | **published**, exact |
+
+**Done:** catalogue client, credential handling, the L1B HDF5 reader (counts +
+calibration LUT), and the pipeline wiring. `resolve_source()` picks INSAT the
+moment granules appear — no code change.
+
+**Your one step:** register at <https://mosdac.gov.in/signup/>, export
+`MOSDAC_USERNAME` / `MOSDAC_PASSWORD`, then fetch. ~88 granules at 180 min
+cadence is 25 GB. Details in [docs/INSAT-ACCESS.md](docs/INSAT-ACCESS.md).
 
 ---
 
 ## WeatherNext 2
 
-Environmental fields come from a pluggable `EnvironmentProvider`
-(`src/cyclops/providers/`). Three implementations:
+Environmental fields sit behind a pluggable provider
+(`src/cyclops/providers/`). `ClimatologyProvider` is offline and always works;
+`WeatherNext2Provider` is implemented and **pending access** — requests are
+reviewed weekly and take 5–7 business days, so file early.
 
-| Provider | Fidelity | Status |
-|---|---|---|
-| `ClimatologyProvider` | analytic NIO climatology | **working, offline, zero setup** — what the demo runs on |
-| `ERA5Provider` | reanalysis | needs a Copernicus CDS account |
-| `WeatherNext2Provider` | Google DeepMind AI ensemble | **implemented, pending access** |
-
-WeatherNext 2 supplies exactly what the track model is missing, in the two forms
-that matter:
-
-1. A **forecast** deep-layer steering wind at +6/12/18/24 h, rather than a
-   climatological average. This is the physically correct predictor for where a
-   cyclone goes.
-2. An **ensemble**. Members disagree most when the synoptic situation is
-   genuinely uncertain, so ensemble spread is a physically grounded predictor of
-   forecast error — which turns the uncertainty cone from one fixed radius per
-   lead time into a per-case width. Narrow in a well-determined steering regime,
-   wide near a ridge break. That is what operational centres actually do.
-
-**Access is on the critical path.** WeatherNext 2 is not open data: requests go
-through the [WeatherNext Data Request form](https://developers.google.com/weathernext/guides/access-forecast),
-are reviewed weekly, and take roughly 5–7 business days. **File the request now.**
-Once granted, `prefetch_case()` pulls the NIO subset to local Zarr so the demo
-still makes zero network calls at the venue.
-
-Until then `resolve_provider()` falls back to climatology automatically, logs
-which provider it resolved, and reports it on `/v1/health` — so nobody has to
-guess what the demo is running on.
-
-The adapter is written against the documented schema and unit-tested against a
-synthetic store. It has **not** been validated against the real archive. Say
-"implemented and pending access", which is true and still a good answer.
-
----
-
-## Quick start
-
-```bash
-make setup      # venv + npm install
-make data       # download IBTrACS, build the dataset
-make train      # nowcast + intensity ablation
-make demo       # API on :8000, console on :5180
-```
-
-Then open **<http://localhost:5180>**. The console opens on a cyclone already
-playing — never an empty state.
-
-> The map needs a **visible, foreground** browser tab. MapLibre does its style
-> loading inside the `requestAnimationFrame` loop, which browsers pause in
-> hidden or background tabs, so a headless or backgrounded tab shows a blank
-> map. It recovers on its own the moment the tab is fronted. Not a concern for
-> a live demo; worth knowing if you screenshot from a script.
-
-Verify a running stack:
-
-```bash
-make smoke
-```
+It supplies a *forecast* steering wind rather than a climatological average, and
+supplies it as an *ensemble* — so cone width could become per-case rather than
+one fixed radius per lead time. See [docs/WEATHERNEXT-2.md](docs/WEATHERNEXT-2.md).
 
 ---
 
 ## The console
 
-The map is the page: full-bleed, with every panel floating over it as
-translucent chrome — the layout language of zoom.earth and
-earth.nullschool.net, chosen because the subject of the screen is a cyclone,
-not a dashboard.
+The map is the page: full-bleed, with every panel floating over it — the layout
+language of zoom.earth and earth.nullschool.net.
 
-| Layer | What it is |
+| layer | what it is |
 |---|---|
 | Basemap | Clipped Natural Earth extract, bundled (~250 KB). No tile server, no token, no network. |
-| Infrared imagery | The IR frame draped in its true geographic position, with clear air transparent so the coast and track show through. |
-| Surface wind flow | Particles advected through the scatterometer retrieval. Stops at the swath edge and respawns in rain-flagged cells, so coverage gaps stay visible as gaps rather than being interpolated over. |
-| Track, forecast, cone | Observed solid, forecast dashed in a different hue, cone translucent. |
+| Infrared | Frame draped in its true geographic position, clear air transparent |
+| Surface wind flow | Particles advected through the scatterometer field; stops at the swath edge |
+| Track, forecast, cone | Observed solid, forecast dashed, cone translucent |
 
-The timeline strip is tinted by IMD category across the part of the storm already
-revealed, and is built from the track the replay has released — the console never
-requests data past the storm clock, so the network tab shows no future-looking
-request either.
+Two extra views: **Performance** (baselines, ablation, confusion matrix) and
+**Real data** — Fani, Amphan and Mocha on real MODIS imagery, with the picker
+labelling which storm is the threshold source and which are out-of-sample.
 
-`make validate-map` checks the style and the bundled basemap in Node. MapLibre
-only reports a bad style once something paints, which means a headless CI box or
-a hidden tab renders an empty map with no error at all — this catches it at build
-time instead. It was written after exactly that bug: a style key set to
-`undefined` passes a truthiness check, fails MapLibre's validator, and leaves a
-blank map behind.
+`make validate-map` checks the style and basemap in Node. MapLibre only reports a
+bad style once something paints, so a headless box renders an empty map with no
+error; this catches it at build time. If the map fails at runtime the console
+names the cause rather than showing a black rectangle.
 
-## INSAT-3D access
+---
 
-Working — search runs today with no account; downloads need a free MOSDAC
-account that only you can create. See [docs/INSAT-ACCESS.md](docs/INSAT-ACCESS.md).
+## Protective tests
 
 ```bash
-make insat-status
+make test            # everything, 68 tests
+make test-critical   # the three that protect credibility
 ```
 
-INSAT-3DR holds **1,947 granules** over Fani's window against the 18 MODIS day
-passes currently used, at a measured 8.1-minute cadence with **published**
-timestamps rather than estimated ones. That directly removes both error terms
-identified in [docs/FINDING-eye-detection.md](docs/FINDING-eye-detection.md) as
-the ceiling on IR centre-fixing.
-
-The HDF5 reader is written (`make insat-selftest`, 14 checks). L1B stores counts
-plus a calibration LUT, so brightness temperature is `IMG_TIR1_TEMP[IMG_TIR1]` —
-reading the counts directly raises no error and simply is not temperature. It is
-validated against a synthetic granule built to the documented layout, including
-the check that `centre_fix` and `dvorak` consume an INSAT scene unchanged. It has
-not yet seen a real granule; run `describe` on the first one.
-
-## The three protective tests
-
-These exist because each one guards a claim that, if false, ends the submission.
-
-```bash
-make test-critical
-```
-
-| Test | Guards against |
+| test | guards against |
 |---|---|
-| `test_split_integrity.py` | A storm appearing in train and test. Frames of one cyclone are near-duplicates; frame-level splitting inflates every metric. Includes a test that the guard itself fires. |
-| `test_replay_causality.py` | Forecasting with hindsight. Drives a full replay through a spying store and asserts every read was bounded by the storm clock. **Show this to a judge who asks how they know.** |
-| `test_preprocess_parity.py` | Training-serving skew. Asserts the API imports the training preprocessing module rather than copying it — skew fails silently, with no exception and no log, just wrong numbers. |
+| `test_split_integrity` | A storm in both train and test. Includes a test that the guard itself fires. |
+| `test_replay_causality` | Forecasting with hindsight. Drives a full replay through a spying store. |
+| `test_preprocess_parity` | Training/serving skew. Asserts the API imports the training module rather than copying it. |
+| `test_mosdac_credentials` | A password reaching disk, a log, or a commit. |
+| `test_insat_reader` | Reading raw counts as if they were temperature. |
+| `test_scene_source` | INSAT silently not being a drop-in for MODIS. |
 
 ---
 
 ## Architecture
 
 ```
-IBTrACS v04r01 ──┐
-                 ├─→ features ──→ storm-wise splits ──→ ┌─ nowcast (quantile GBM)
-synthetic IR ────┤                                      └─ fusion CNN
-synthetic wind ──┤                                          │
-env provider ────┘                                          ├─ intensity (kt → IMD)
-  ├ climatology (offline)                                   ├─ T-number
-  ├ ERA5                                                    ├─ centre fix
-  └ WeatherNext 2                                           └─ Grad-CAM
-                                                            │
-                            FastAPI ──── replay engine ─────┤
-                            (causality enforced in the      │
-                             store's query, not in app      │
-                             code)                          │
-                                 │                          │
-                            WebSocket ──→ React console ────┘
+IBTrACS ─────────┐
+                 ├─→ features ──→ storm-wise splits ──→ nowcast (quantile GBM)
+scene source ────┤                                      fusion CNN
+  ├ GIBS/MODIS   │                                        │
+  └ INSAT-3DR    │                                        ├─ intensity (kt → IMD)
+env provider ────┘                                        ├─ objective Dvorak
+  ├ climatology (offline)                                 ├─ centre fix
+  ├ ERA5                                                  └─ Grad-CAM
+  └ WeatherNext 2                                         │
+                        FastAPI ──── replay engine ───────┤
+                        (causality enforced in the query) │
+                              └─ WebSocket ──→ React console
 ```
 
 ### Design decisions worth defending
 
-- **Regress knots, then bucket into IMD categories.** Not a 7-class classifier.
-  Cross-entropy treats confusing SuCS with D as no worse than confusing SuCS with
-  ESCS, the category boundaries are human conventions rather than physical
-  thresholds, and SuCS is rare enough that a classifier learns never to predict it.
-- **Nowcast predicts a residual from persistence.** Persistence already gets
-  "the storm keeps moving" right. Making the model re-learn that from scratch
-  wastes its capacity on 5,000 rows. Predicting the correction means the model
-  starts at persistence skill and the learned part can only add.
+- **Regress knots, then bucket into IMD categories.** Not a 7-class classifier:
+  cross-entropy treats confusing SuCS with D as no worse than with ESCS, the
+  boundaries are human conventions, and SuCS is rare enough that a classifier
+  learns never to predict it.
+- **Nowcast predicts a residual from persistence.** Persistence already gets "the
+  storm keeps moving" right; making the model relearn it wastes capacity on
+  5,000 rows.
+- **Objective Dvorak is rule-based, not learned.** 18 scenes cannot train a
+  network without memorising, and the rule behind each number prints on screen
+  where a forecaster can argue with it.
+- **An eye needs enclosure *and* symmetry.** Enclosure alone fires on cloud
+  edges; symmetry alone fires on gaps in convective bands.
 - **Late fusion, not early.** Geostationary IR is 4 km every 15–30 min; a
-  scatterometer is 12.5–25 km twice a day. Resampling winds to 4 km would
-  fabricate detail that was never measured.
-- **Modality dropout at p=0.3.** Most timesteps have no coincident scatterometer
-  pass. Without it, the model becomes dependent on a modality that is usually
-  absent. This is the answer to "how do you handle the temporal mismatch?"
-- **Huber loss with δ=10 kt.** Chosen physically, not by search: 10 kt is roughly
-  the inter-analyst disagreement in Dvorak estimation, so residuals below it sit
-  inside the label's own noise floor.
-- **Offline basemap.** A clipped Natural Earth extract (~250 KB) bundled with the
-  app. No tile server, no token. A venue with a captive portal would otherwise
-  leave a grey rectangle on screen with nothing to be done in the moment.
+  scatterometer is 12.5–25 km twice a day. Resampling winds to 4 km fabricates
+  detail nobody measured.
+- **Huber loss with δ=10 kt.** Chosen physically: ~the inter-analyst
+  disagreement in Dvorak estimation, so residuals below it sit inside the
+  label's own noise floor.
+- **Offline basemap.** A venue with a captive portal would otherwise leave a grey
+  rectangle on screen with nothing to be done in the moment.
 
 ---
 
@@ -288,37 +269,42 @@ env provider ────┘                                          ├─ int
 > India Meteorological Department, which remains the sole authority for tropical
 > cyclone warnings in the North Indian Ocean. Prediction is limited to a 6–24
 > hour horizon. Intensity estimates are trained against best-track records that
-> are themselves partly derived from subjective Dvorak analysis, and the system's
-> accuracy is therefore bounded by the consistency of that record.
+> are themselves partly derived from subjective Dvorak analysis, and the
+> system's accuracy is therefore bounded by the consistency of that record.
 
-This paragraph is on the console, not buried in an About page. It is not a
-hedge — it is what makes a domain expert take the rest of the numbers seriously.
+On the console, not buried in an About page. It is not a hedge — it is what makes
+a domain expert take the rest of the numbers seriously.
 
 ---
 
 ## Gotchas already hit, and why the code looks the way it does
 
-These cost real time. They are written down so nobody rediscovers them at 2am
-during the Finale.
+Each of these cost real time and each left a guard behind.
 
-| Symptom | Cause | Fix in this repo |
+| symptom | cause | guard |
 |---|---|---|
-| API segfaults, or **hangs**, at startup | LightGBM and PyTorch each link their own OpenMP runtime on macOS. Deserialising a LightGBM booster after importing torch crashes; the other import order deadlocks. | Nowcast uses scikit-learn's `HistGradientBoostingRegressor` — same quantile objective, no second OpenMP. `CYCLOPS_GBM=lightgbm` opts back in for offline experiments only. |
-| Console shows **somebody else's app** | Vite defaults to port 5173, so any other Vite project on the laptop takes it first and silently shadows this one. | Console is on **5180** with `strictPort`, and `scripts/demo.sh` refuses to start if a port is taken and then greps the served HTML for `CYCLOPS`. |
-| Map is a blank rectangle | Passing a module-level style constant to MapLibre: it mutates the object during load, so React StrictMode's second mount gets an already-consumed style. Also: a hidden browser tab never fires `requestAnimationFrame`, so MapLibre's render loop — and therefore style loading — never starts. | `makeStyle()` / `empty()` return fresh objects per map. The tab issue is browser behaviour and resolves as soon as the tab is visible. |
-| Frames re-render differently after a restart | Seeded from Python's `hash()`, which is randomised per process for strings. | Seeded from a SHA-256 of `sid|timestamp`. |
-| `?until=...` returns a 500 | A `+` in an ISO-8601 UTC offset decodes as a space in a query string. The console encodes correctly; curl and the `/docs` Try-it-out button do not. | `api/routers/_timeparse.py` repairs it and returns 422 rather than 500 on genuinely bad input. |
-| Centre-fix error ~166 km | The offset was regressed from the globally-pooled embedding. Global average pooling is translation-invariant, so it carries almost no information about *where* the storm is. | `CentreHead`: a soft-argmax over a spatial heatmap on the layer3 feature map. |
-| Intensity RMSE of 1.5 kt | The renderer made intensity perfectly recoverable from the image, so the ablation measured nothing. | `IR_PATTERN_NOISE_KT = 9.0` — see `docs/DATA-STATUS.md`. |
+| A 27 kt depression displayed as **Super Cyclonic Storm** | `to_imd_category` had gaps between whole-knot bands; 27.5 matched nothing and fell through to the last return | bands are half-open; a test sweeps 0–200 kt |
+| Every scene classified CDO, never EYE | eye temperature in **°C** compared against ring temperature in **kelvin** | — |
+| Centre search locked onto empty ocean | minimising raw azimuthal spread has a degenerate optimum in any uniform region | normalised to variance explained by radius |
+| A 110 kt cyclone called 31 kt | pattern gating on the symmetry score sent mature storms down the SHEAR branch | gate on shield extent and coldness, as Dvorak specifies |
+| Map rendered blank, no error | a style key set to `undefined` passes a truthiness check but fails MapLibre's validator | `make validate-map` |
+| Map rendered at quarter size | MapLibre latched onto its 400×300 fallback before layout settled | ResizeObserver |
+| Console served **someone else's app** | Vite defaults to 5173, which another project owned | port 5180, `strictPort`, and `demo.sh` greps the served HTML for `CYCLOPS` |
+| `urllib` failed TLS against valid hosts | python.org macOS build is not wired to the system keychain | certifi |
+| Fani's real results replaced by synthetic ones | the INSAT demo wrote to the same artifact key | `artifact_key` parameter |
+
+---
 
 ## Next, in order
 
 1. **File the MOSDAC and WeatherNext 2 access requests.** Both have multi-week
    lead times and both are on the critical path. Nothing else here is.
-2. **Swap synthetic imagery for Digital Typhoon**, then fine-tune on INSAT.
-   One loader changes; the rest of the pipeline does not.
-3. **Wire WeatherNext 2 steering flow into the nowcast** and re-measure track
-   skill. This is the identified fix for the +11% figure.
-4. **Ensemble-spread-conditioned cone width** — the genuinely novel piece.
-5. PostGIS + Docker Compose for one-command startup (schema is in doc 02 §B7).
-6. ONNX export so the API image drops torch and starts in seconds.
+2. **Fetch real INSAT granules and re-run `make cases`.** This is the experiment
+   that tests whether removing the ±30 min timing error lets centre-fixing beat
+   motion extrapolation. The pipeline needs no changes.
+3. **Run `describe` on the first real granule** to confirm MOSDAC's layout
+   matches the documented one.
+4. **Swap synthetic training imagery for Digital Typhoon**, then fine-tune on
+   INSAT. One loader changes.
+5. **Wire WeatherNext 2 steering flow into the nowcast** and re-measure track skill.
+6. **Ensemble-spread-conditioned cone width** — the genuinely novel piece.

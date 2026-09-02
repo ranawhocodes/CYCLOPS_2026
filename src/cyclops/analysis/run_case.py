@@ -60,7 +60,13 @@ def _interp(f: pd.DataFrame, when) -> tuple[float, float, float] | None:
 
 
 def run_case(sid: str, name: str, season: int, verbose: bool = True,
-             source: SceneSource | None = None, prefer: str = "auto") -> dict:
+             source: SceneSource | None = None, prefer: str = "auto",
+             artifact_key: str | None = None) -> dict:
+    """
+    `artifact_key` names the output files. It exists so a synthetic-data demo
+    cannot overwrite a real result — which it did once, replacing Fani's real
+    MODIS numbers with synthetic ones that were nearly published as real.
+    """
     f = _track(sid)
     # Local solar time depends on where the storm is, so a polar-orbiter's UTC
     # overpass time is computed from this storm's own longitude.
@@ -225,7 +231,7 @@ def run_case(sid: str, name: str, season: int, verbose: bool = True,
         },
     }
 
-    key = name.lower()
+    key = artifact_key or name.lower()
     (ARTIFACTS / f"{key}_frames.json").write_text(json.dumps(frames, indent=2))
     (ARTIFACTS / f"{key}_analysis.json").write_text(json.dumps(summary, indent=2))
     return summary

@@ -120,7 +120,10 @@ def run() -> int:
     print(f"  {src.name:44s} {n_insat:3d}   timestamps PUBLISHED")
 
     print(f"\nrunning the full pipeline on the INSAT source…\n")
-    summary = run_case(FANI, "Fani", 2019, verbose=True, source=src)
+    # Its own artifact key: this run is synthetic and must never overwrite the
+    # real MODIS results for Fani.
+    summary = run_case(FANI, "Fani", 2019, verbose=True, source=src,
+                       artifact_key="fani_insat_demo")
 
     print()
     print("=" * 72)
@@ -132,6 +135,9 @@ def run() -> int:
     print(f"  centre fix      : {i['centre_error_km']['mean']} km "
           f"(vs {i['first_guess_error_km']['mean']} km first guess)")
     print(f"  eyes detected   : {i['eye_detected_frames']}/{d['n_scenes']}")
+    print()
+    print("  Written to artifacts/fani_insat_demo_*.json — the real MODIS")
+    print("  results in artifacts/fani_*.json are untouched.")
     print()
     print("  Reminder: synthetic imagery — these are not skill numbers.")
     print("  Fetch real granules and re-run for a real result:")

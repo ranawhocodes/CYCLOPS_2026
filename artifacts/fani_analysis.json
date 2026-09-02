@@ -9,61 +9,61 @@
     "note": "chosen on Fani; unchanged for every storm"
   },
   "data": {
-    "imagery": "REAL - MOSDAC / INSAT-3DR L1B TIR-1 (10.8 um)",
+    "imagery": "REAL - NASA GIBS / MODIS Band 31 (11 um)",
     "labels": "REAL - IBTrACS v04r01 NEWDELHI_WIND (3-min sustained, IMD)",
-    "n_scenes": 29,
+    "n_scenes": 18,
     "ref_lon": 87.3,
     "source": {
-      "source": "MOSDAC / INSAT-3DR L1B TIR-1 (10.8 um)",
+      "source": "NASA GIBS / MODIS Band 31 (11 um)",
       "real": true,
-      "cadence": "geostationary; ~30 min full disk plus rapid-scan sectors, at PUBLISHED acquisition times",
-      "time_is_exact": true
+      "cadence": "polar-orbiting; ~2 usable day passes per day at ESTIMATED overpass times (+/-30 min)",
+      "time_is_exact": false
     }
   },
   "identification": {
-    "detection_rate": 0.0,
+    "detection_rate": 0.444,
     "centre_error_km": {
-      "mean": 14.7,
-      "median": 10.9,
-      "p90": 29.3,
-      "max": 57.5
+      "mean": 19.5,
+      "median": 17.2,
+      "p90": 31.6,
+      "max": 36.0
     },
     "first_guess_error_km": {
-      "mean": 18.3,
-      "median": 15.3
+      "mean": 18.2,
+      "median": 15.8
     },
     "last_fix_error_km": {
-      "mean": 46.5
+      "mean": 48.2
     },
-    "skill_vs_first_guess": 0.194,
-    "skill_vs_last_fix": 0.684,
-    "frames_refined": 11,
-    "eye_detected_frames": 11,
+    "skill_vs_first_guess": -0.071,
+    "skill_vs_last_fix": 0.595,
+    "frames_refined": 1,
+    "eye_detected_frames": 1,
     "eye_scenes_only": {
-      "n": 11,
-      "fix_mean_km": 5.9,
-      "first_guess_mean_km": 16.4,
-      "skill": 0.638
+      "n": 1,
+      "fix_mean_km": 19.4,
+      "first_guess_mean_km": 6.7,
+      "skill": -1.896
     }
   },
   "classification": {
     "method": "Objective Dvorak (enhanced IR)",
     "raw": {
-      "rmse_kt": 19.07,
-      "mae_kt": 16.51,
-      "bias_kt": 0.71
+      "rmse_kt": 29.78,
+      "mae_kt": 24.85,
+      "bias_kt": 10.22
     },
     "time_constrained": {
-      "rmse_kt": 28.7,
-      "mae_kt": 23.9,
-      "bias_kt": -6.81
+      "rmse_kt": 28.38,
+      "mae_kt": 24.68,
+      "bias_kt": 11.07
     },
-    "category_exact": 0.103,
-    "category_within_one": 0.655,
+    "category_exact": 0.222,
+    "category_within_one": 0.5,
     "patterns": {
-      "SHEAR": 16,
-      "EMBEDDED_CENTER": 2,
-      "EYE": 11
+      "EMBEDDED_CENTER": 1,
+      "CDO": 16,
+      "EYE": 1
     }
   }
 }

@@ -9,10 +9,16 @@
     "note": "chosen on Fani; unchanged for every storm"
   },
   "data": {
-    "imagery": "REAL - NASA GIBS, MODIS Terra/Aqua Band 31 (11 um)",
+    "imagery": "REAL - NASA GIBS / MODIS Band 31 (11 um)",
     "labels": "REAL - IBTrACS v04r01 NEWDELHI_WIND (3-min sustained, IMD)",
     "n_scenes": 12,
-    "ref_lon": 86.7
+    "ref_lon": 86.7,
+    "source": {
+      "source": "NASA GIBS / MODIS Band 31 (11 um)",
+      "real": true,
+      "cadence": "polar-orbiting; ~2 usable day passes per day at ESTIMATED overpass times (+/-30 min)",
+      "time_is_exact": false
+    }
   },
   "identification": {
     "detection_rate": 0.5,
@@ -55,9 +61,9 @@
     "category_exact": 0.083,
     "category_within_one": 0.667,
     "patterns": {
-      "CDO": 8,
       "SHEAR": 2,
-      "EYE": 2
+      "EYE": 2,
+      "CDO": 8
     }
   }
 }

@@ -3,6 +3,7 @@
     "date": "2023-05-09",
     "pass": "terra_day",
     "observed_at": "2023-05-09T04:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 7.524,
       "lon": 90.168
@@ -56,6 +57,7 @@
     "date": "2023-05-09",
     "pass": "aqua_day",
     "observed_at": "2023-05-09T07:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 7.6,
       "lon": 89.314
@@ -109,6 +111,7 @@
     "date": "2023-05-10",
     "pass": "terra_day",
     "observed_at": "2023-05-10T04:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 8.652,
       "lon": 88.924
@@ -162,6 +165,7 @@
     "date": "2023-05-10",
     "pass": "aqua_day",
     "observed_at": "2023-05-10T07:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 9.508,
       "lon": 88.37
@@ -215,6 +219,7 @@
     "date": "2023-05-11",
     "pass": "terra_day",
     "observed_at": "2023-05-11T04:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 11.504,
       "lon": 87.948
@@ -268,6 +273,7 @@
     "date": "2023-05-11",
     "pass": "aqua_day",
     "observed_at": "2023-05-11T07:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 11.704,
       "lon": 88.1
@@ -321,6 +327,7 @@
     "date": "2023-05-12",
     "pass": "terra_day",
     "observed_at": "2023-05-12T04:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 13.68,
       "lon": 88.1
@@ -374,6 +381,7 @@
     "date": "2023-05-12",
     "pass": "aqua_day",
     "observed_at": "2023-05-12T07:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 14.182,
       "lon": 88.352
@@ -427,6 +435,7 @@
     "date": "2023-05-13",
     "pass": "terra_day",
     "observed_at": "2023-05-13T04:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 15.704,
       "lon": 89.252
@@ -480,6 +489,7 @@
     "date": "2023-05-13",
     "pass": "aqua_day",
     "observed_at": "2023-05-13T07:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 16.156,
       "lon": 90.234
@@ -533,6 +543,7 @@
     "date": "2023-05-14",
     "pass": "terra_day",
     "observed_at": "2023-05-14T04:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 19.308,
       "lon": 92.08
@@ -586,6 +597,7 @@
     "date": "2023-05-14",
     "pass": "aqua_day",
     "observed_at": "2023-05-14T07:33:36+00:00",
+    "time_is_exact": false,
     "first_guess": {
       "lat": 20.212,
       "lon": 92.834
