@@ -56,8 +56,8 @@
     "category_within_one": 0.667,
     "patterns": {
       "CDO": 8,
-      "EYE": 2,
-      "SHEAR": 2
+      "SHEAR": 2,
+      "EYE": 2
     }
   }
 }

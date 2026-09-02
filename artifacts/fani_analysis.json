@@ -55,9 +55,9 @@
     "category_exact": 0.222,
     "category_within_one": 0.5,
     "patterns": {
+      "CDO": 16,
       "EMBEDDED_CENTER": 1,
-      "EYE": 1,
-      "CDO": 16
+      "EYE": 1
     }
   }
 }

@@ -115,6 +115,22 @@ RING_ENCLOSURE_C = -50.0
 # Measured on Fani: true eyes score 0.39-0.64, spurious enclosed gaps 0.04-0.29.
 EYE_MIN_SYMMETRY = 0.35
 
+# A candidate eye must also be physically reachable from the first guess. A
+# cyclone eye is not 150 km from a motion-extrapolated position; measured across
+# Fani, Amphan and Mocha, plausible candidates cluster at <=59 km from the guess
+# and spurious ones jump to >=88 km, with nothing in between.
+#
+# MEASURED REDUNDANT on Fani, Amphan and Mocha: of the candidates clearing the
+# contrast gate, 3 pass both gates, 4 fail symmetry alone, 0 fail distance
+# alone, 12 fail both. This guard currently catches nothing the symmetry gate
+# does not already catch, and it is not claimed as an improvement.
+#
+# It is kept because it states the actual physical constraint rather than a
+# proxy — the symmetry gate rejects these candidates for reasons unrelated to
+# why they are wrong — so it should still hold where that accident does not.
+# See docs/FINDING-eye-detection.md.
+EYE_MAX_DISTANCE_KM = 60.0
+
 
 def find_centre(K: np.ndarray, valid: np.ndarray,
                 bbox: tuple[float, float, float, float],
@@ -264,8 +280,11 @@ def find_centre(K: np.ndarray, valid: np.ndarray,
     #
     # A real eye is both enclosed by cold convection AND at the centre of an
     # axisymmetric storm. Requiring both separates them cleanly.
+    cand_dist_km = float(np.hypot(best_rc[0] - guess_r,
+                                  best_rc[1] - guess_c) * km_per_px)
     eye_found = (np.isfinite(ct) and ct >= EYE_CONTRAST_C
-                 and cand_sym >= EYE_MIN_SYMMETRY)
+                 and cand_sym >= EYE_MIN_SYMMETRY
+                 and cand_dist_km <= EYE_MAX_DISTANCE_KM)
 
     if eye_found:
         r_best, c_best = best_rc
