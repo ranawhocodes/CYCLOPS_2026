@@ -42,8 +42,14 @@ intensity:  ## train the fusion intensity model and run the ablation
 # ---------------------------------------------------------------- eval
 .PHONY: fani
 fani:  ## fetch real MODIS scenes for Fani and run identification + Dvorak
-	$(EXPORT) $(PY) -W ignore -u -m cyclops.analysis.run_fani
+	$(EXPORT) $(PY) -W ignore -u -m cyclops.analysis.run_case fani
 	$(EXPORT) $(PY) -W ignore -m cyclops.analysis.fani_figures
+
+.PHONY: cases
+cases:  ## run all three real-imagery storms; Amphan and Mocha are out-of-sample
+	$(EXPORT) $(PY) -W ignore -u -m cyclops.analysis.run_case
+	$(EXPORT) $(PY) -W ignore -m cyclops.analysis.fani_figures
+	$(EXPORT) $(PY) -W ignore -m cyclops.analysis.transfer_figure
 
 .PHONY: eval
 eval:  ## print the results table from artifacts/

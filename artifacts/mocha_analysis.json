@@ -1,0 +1,56 @@
+{
+  "storm": "Mocha",
+  "sid": "2023129N08091",
+  "season": 2023,
+  "thresholds_used": {
+    "EYE_CONTRAST_C": 15.0,
+    "RING_ENCLOSURE_C": -50.0,
+    "EYE_MIN_SYMMETRY": 0.35,
+    "note": "chosen on Fani; unchanged for every storm"
+  },
+  "data": {
+    "imagery": "REAL - NASA GIBS, MODIS Terra/Aqua Band 31 (11 um)",
+    "labels": "REAL - IBTrACS v04r01 NEWDELHI_WIND (3-min sustained, IMD)",
+    "n_scenes": 12,
+    "ref_lon": 89.1
+  },
+  "identification": {
+    "detection_rate": 0.25,
+    "centre_error_km": {
+      "mean": 25.2,
+      "median": 19.1,
+      "p90": 56.9,
+      "max": 63.3
+    },
+    "first_guess_error_km": {
+      "mean": 24.9,
+      "median": 20.1
+    },
+    "last_fix_error_km": {
+      "mean": 51.8
+    },
+    "skill_vs_first_guess": -0.013,
+    "skill_vs_last_fix": 0.514,
+    "frames_refined": 0,
+    "eye_detected_frames": 0,
+    "eye_scenes_only": null
+  },
+  "classification": {
+    "method": "Objective Dvorak (enhanced IR)",
+    "raw": {
+      "rmse_kt": 28.72,
+      "mae_kt": 25.36,
+      "bias_kt": 9.22
+    },
+    "time_constrained": {
+      "rmse_kt": 26.18,
+      "mae_kt": 23.31,
+      "bias_kt": 9.08
+    },
+    "category_exact": 0.167,
+    "category_within_one": 0.5,
+    "patterns": {
+      "CDO": 12
+    }
+  }
+}

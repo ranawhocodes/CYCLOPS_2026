@@ -632,3 +632,21 @@ button, select, input { font-family: inherit; font-size: inherit; color: inherit
 .fani-tnums > span:first-child { font-size: 15px; }
 .fani-tnums em { font-style: normal; font-size: 8.5px; letter-spacing: 0.06em; }
 .fani-tnums .dim { font-size: 10px; }
+
+/* ---------- real-case picker ---------- */
+.fani-cases { display: flex; gap: 7px; margin: 0 0 14px; flex-wrap: wrap; }
+.fani-case {
+  display: flex; flex-direction: column; gap: 2px; align-items: flex-start;
+  background: transparent; border: 1px solid var(--rule); border-radius: 7px;
+  padding: 7px 11px; cursor: pointer; transition: border-color 120ms, background 120ms;
+}
+.fani-case:hover { border-color: var(--rule-2); background: var(--deck-2); }
+.fani-case.on { border-color: var(--bd-cyan); background: rgba(53, 196, 232, 0.09); }
+.fani-case-nm { font-weight: 650; font-size: 12.5px; }
+.fani-case .dim { font-size: 9.5px; }
+.tag-ctl, .tag-oos {
+  font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 1px 5px; border-radius: 3px; border: 1px solid;
+}
+.tag-ctl { color: var(--bd-amber); border-color: rgba(242, 198, 61, 0.5); }
+.tag-oos { color: var(--bd-green); border-color: rgba(59, 209, 111, 0.5); }

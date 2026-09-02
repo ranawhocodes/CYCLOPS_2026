@@ -1,10 +1,13 @@
 """
-Cyclone Fani (2019) — the real-data case study.
+Real-data case studies — Fani (2019), Amphan (2020), Mocha (2023).
 
 Everything served here is measured, not simulated: MODIS Band 31 infrared from
-NASA GIBS, and IBTrACS best track on IMD's 3-minute convention. This is the one
-case in the system with no synthetic imagery anywhere in the chain, which is why
-it has its own endpoints rather than going through the generic replay.
+NASA GIBS, and IBTrACS best track on IMD's 3-minute convention. These are the
+cases with no synthetic imagery anywhere in the chain, which is why they have
+their own endpoints rather than going through the generic replay.
+
+Fani is where the eye-gate thresholds were chosen. Amphan and Mocha were run
+with those thresholds unchanged, so their numbers are the out-of-sample test.
 """
 from __future__ import annotations
 
@@ -26,8 +29,16 @@ from cyclops.geo import patch_corners  # noqa: E402
 
 router = APIRouter(tags=["fani"])
 
-FRAMES = ARTIFACTS / "fani_frames.json"
-SUMMARY = ARTIFACTS / "fani_analysis.json"
+CASES = ("fani", "amphan", "mocha")
+# Fani is the storm the thresholds were selected on; the other two never were.
+THRESHOLD_SOURCE = "fani"
+
+
+def _paths(case: str):
+    case = case.lower()
+    if case not in CASES:
+        raise HTTPException(404, f"unknown case '{case}' (have: {', '.join(CASES)})")
+    return (ARTIFACTS / f"{case}_frames.json", ARTIFACTS / f"{case}_analysis.json")
 
 # Same ramp as the figures: warm sea surface dark, cloud brightening as it cools,
 # the coldest overshooting tops breaking into the Dvorak enhancement colours.
@@ -70,36 +81,56 @@ def _bd_rgba(C: np.ndarray, valid: np.ndarray, georef: bool) -> np.ndarray:
     return out
 
 
-@router.get("/fani/summary")
-async def fani_summary():
+@router.get("/cases-real")
+async def real_cases():
+    """The storms with a real-imagery analysis available, and which is the control."""
+    out = []
+    for c in CASES:
+        _, sp = _paths(c)
+        if not sp.exists():
+            continue
+        d = json.loads(sp.read_text())
+        out.append({
+            "key": c, "storm": d["storm"], "season": d["season"],
+            "n_scenes": d["data"]["n_scenes"],
+            "threshold_source": c == THRESHOLD_SOURCE,
+            "centre_error_km": d["identification"]["centre_error_km"]["mean"],
+            "rmse_kt": d["classification"]["time_constrained"]["rmse_kt"],
+            "bias_kt": d["classification"]["time_constrained"]["bias_kt"],
+        })
+    return out
+
+
+@router.get("/case/{case}/summary")
+async def case_summary(case: str):
     """Headline identification and classification results."""
-    return _load(SUMMARY)
+    return _load(_paths(case)[1])
 
 
-@router.get("/fani/frames")
-async def fani_frames():
+@router.get("/case/{case}/frames")
+async def case_frames(case: str):
     """
     Every analysed scene: best track, centre fix, Dvorak estimate, errors.
 
     Each frame carries `corners` so the console can drape the imagery in its true
     geographic position rather than guessing an extent.
     """
-    frames = _load(FRAMES)
+    frames = _load(_paths(case)[0])
     for i, fr in enumerate(frames):
         fr["index"] = i
-        fr["image_url"] = f"/v1/fani/frame/{i}.png"
-        fr["georef_url"] = f"/v1/fani/frame/{i}.png?georef=1"
+        fr["image_url"] = f"/v1/case/{case.lower()}/frame/{i}.png"
+        fr["georef_url"] = f"/v1/case/{case.lower()}/frame/{i}.png?georef=1"
         fr["corners"] = patch_corners(fr["first_guess"]["lat"],
                                       fr["first_guess"]["lon"])
     return frames
 
 
-@router.get("/fani/frame/{idx}.png")
-async def fani_frame(idx: int, request: Request, georef: bool = False):
+@router.get("/case/{case}/frame/{idx}.png")
+async def case_frame(case: str, idx: int, request: Request, georef: bool = False):
     """One real MODIS scene, BD-enhanced."""
     from PIL import Image
 
-    frames = _load(FRAMES)
+    frames = _load(_paths(case)[0])
     if not 0 <= idx < len(frames):
         raise HTTPException(404, f"frame {idx} out of range (0..{len(frames)-1})")
     fr = frames[idx]

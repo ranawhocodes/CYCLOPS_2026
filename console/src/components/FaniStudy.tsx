@@ -2,16 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import { catColor, fmtUTC } from "../lib/imd";
 
 /**
- * Cyclone Fani (2019) — the real-data case study.
+ * Real-data case studies — Fani (2019), Amphan (2020), Mocha (2023).
  *
- * This view exists because Fani is the one case with no synthetic imagery
- * anywhere in the chain: MODIS Band 31 from NASA GIBS, IBTrACS best track on
- * IMD's 3-minute convention, and a rule-based Dvorak estimator whose reasoning
- * is printed on screen rather than hidden in a weight matrix.
+ * No synthetic imagery anywhere in the chain: MODIS Band 31 from NASA GIBS,
+ * IBTrACS best track on IMD's 3-minute convention, and a rule-based Dvorak
+ * estimator whose reasoning is printed on screen rather than hidden in a weight
+ * matrix.
  *
- * The design rule from the rest of the console still holds: every estimate is
- * shown next to the truth it is being scored against, and the error is stated
- * rather than left to be eyeballed.
+ * The eye-gate thresholds were chosen by inspecting Fani. Amphan and Mocha were
+ * then run with those thresholds unchanged, so switching between them here is
+ * the out-of-sample test — which is why the picker labels which storm is the
+ * control rather than presenting all three as equivalent evidence.
  */
 
 interface Frame {
@@ -39,8 +40,16 @@ interface Frame {
   scene: { coverage: number; min_c: number };
 }
 
+interface CaseRow {
+  key: string; storm: string; season: number; n_scenes: number;
+  threshold_source: boolean; centre_error_km: number;
+  rmse_kt: number; bias_kt: number;
+}
+
 interface Summary {
-  data: { n_scenes: number; imagery: string; labels: string; note: string };
+  storm: string;
+  season: number;
+  data: { n_scenes: number; imagery: string; labels: string };
   identification: {
     centre_error_km: { mean: number; median: number; p90: number; max: number };
     first_guess_error_km: { mean: number };
@@ -65,6 +74,8 @@ const PATTERN_COLOR: Record<string, string> = {
 };
 
 export function FaniStudy({ onClose }: { onClose: () => void }) {
+  const [cases, setCases] = useState<CaseRow[]>([]);
+  const [active, setActive] = useState("fani");
   const [frames, setFrames] = useState<Frame[] | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [i, setI] = useState(0);
@@ -72,13 +83,18 @@ export function FaniStudy({ onClose }: { onClose: () => void }) {
   const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
+    fetch("/v1/cases-real").then((r) => r.json()).then(setCases).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    setFrames(null); setSummary(null); setI(0);
     Promise.all([
-      fetch("/v1/fani/frames").then((r) => r.json()),
-      fetch("/v1/fani/summary").then((r) => r.json()),
+      fetch(`/v1/case/${active}/frames`).then((r) => r.json()),
+      fetch(`/v1/case/${active}/summary`).then((r) => r.json()),
     ])
       .then(([f, s]) => { setFrames(f); setSummary(s); })
       .catch((e) => setErr(String(e)));
-  }, []);
+  }, [active]);
 
   useEffect(() => {
     if (!playing || !frames) return;
@@ -144,7 +160,7 @@ export function FaniStudy({ onClose }: { onClose: () => void }) {
 
         <header className="fani-head">
           <div>
-            <h2>Cyclone Fani · 2019</h2>
+            <h2>Cyclone {summary.storm} · {summary.season}</h2>
             <p className="fani-sub">
               Real MODIS Band 31 infrared (NASA GIBS) · IBTrACS best track,
               IMD 3-minute convention · {summary.data.n_scenes} day passes
@@ -153,6 +169,25 @@ export function FaniStudy({ onClose }: { onClose: () => void }) {
           <span className="real-tag">100% REAL DATA</span>
           <button className="icon-btn" onClick={onClose} aria-label="Close">✕</button>
         </header>
+
+        {/* The picker is the experiment: identical thresholds, three storms,
+            only one of which they were chosen on. */}
+        <nav className="fani-cases" aria-label="Real-data cases">
+          {cases.map((c) => (
+            <button key={c.key}
+                    className={`fani-case ${c.key === active ? "on" : ""}`}
+                    onClick={() => setActive(c.key)}>
+              <span className="fani-case-nm">{c.storm}</span>
+              <span className="mono dim">{c.season}</span>
+              <span className={c.threshold_source ? "tag-ctl" : "tag-oos"}>
+                {c.threshold_source ? "threshold source" : "out-of-sample"}
+              </span>
+              <span className="mono dim">
+                {c.centre_error_km.toFixed(1)} km · {c.rmse_kt.toFixed(1)} kt
+              </span>
+            </button>
+          ))}
+        </nav>
 
         <div className="fani-body">
           {/* ---------- imagery ---------- */}
@@ -297,11 +332,17 @@ export function FaniStudy({ onClose }: { onClose: () => void }) {
             </span>
           </div>
           <p className="fani-caveat">
-            Dvorak tables are unfitted, but two eye-gate thresholds were chosen by
-            inspecting Fani — these figures are <strong>not fully out-of-sample</strong>.
-            Objective Dvorak over-estimates weak systems carrying a large cold
-            shield, and under-estimates at peak when the eye is not resolved in a
-            single polar-orbiter pass.
+            {summary.storm === "Fani" ? (
+              <>Eye-gate thresholds were chosen by inspecting this storm, so these
+              figures are <strong>not out-of-sample</strong>. Amphan and Mocha ran
+              on the same thresholds unchanged — switch to them for the honest test.</>
+            ) : (
+              <>Thresholds were fixed on Fani and applied here <strong>unchanged</strong>,
+              so these figures are genuinely out-of-sample.</>
+            )}{" "}
+            The +9 to +11 kt over-estimate recurs on all three storms, consistent
+            with Dvorak's Atlantic-tuned tables against IMD's North Indian Ocean
+            adjustments.
           </p>
         </footer>
       </div>

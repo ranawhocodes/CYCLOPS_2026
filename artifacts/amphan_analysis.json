@@ -1,0 +1,63 @@
+{
+  "storm": "Amphan",
+  "sid": "2020136N10088",
+  "season": 2020,
+  "thresholds_used": {
+    "EYE_CONTRAST_C": 15.0,
+    "RING_ENCLOSURE_C": -50.0,
+    "EYE_MIN_SYMMETRY": 0.35,
+    "note": "chosen on Fani; unchanged for every storm"
+  },
+  "data": {
+    "imagery": "REAL - NASA GIBS, MODIS Terra/Aqua Band 31 (11 um)",
+    "labels": "REAL - IBTrACS v04r01 NEWDELHI_WIND (3-min sustained, IMD)",
+    "n_scenes": 12,
+    "ref_lon": 86.7
+  },
+  "identification": {
+    "detection_rate": 0.5,
+    "centre_error_km": {
+      "mean": 17.7,
+      "median": 15.2,
+      "p90": 37.3,
+      "max": 47.8
+    },
+    "first_guess_error_km": {
+      "mean": 20.9,
+      "median": 18.4
+    },
+    "last_fix_error_km": {
+      "mean": 43.9
+    },
+    "skill_vs_first_guess": 0.154,
+    "skill_vs_last_fix": 0.597,
+    "frames_refined": 2,
+    "eye_detected_frames": 2,
+    "eye_scenes_only": {
+      "n": 2,
+      "fix_mean_km": 10.8,
+      "first_guess_mean_km": 33.4,
+      "skill": 0.675
+    }
+  },
+  "classification": {
+    "method": "Objective Dvorak (enhanced IR)",
+    "raw": {
+      "rmse_kt": 28.83,
+      "mae_kt": 20.31,
+      "bias_kt": 8.14
+    },
+    "time_constrained": {
+      "rmse_kt": 33.14,
+      "mae_kt": 28.76,
+      "bias_kt": 11.03
+    },
+    "category_exact": 0.083,
+    "category_within_one": 0.667,
+    "patterns": {
+      "CDO": 8,
+      "EYE": 2,
+      "SHEAR": 2
+    }
+  }
+}
