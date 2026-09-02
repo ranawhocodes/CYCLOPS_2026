@@ -198,6 +198,24 @@ time instead. It was written after exactly that bug: a style key set to
 `undefined` passes a truthiness check, fails MapLibre's validator, and leaves a
 blank map behind.
 
+## INSAT-3D access
+
+Working — search runs today with no account; downloads need a free MOSDAC
+account that only you can create. See [docs/INSAT-ACCESS.md](docs/INSAT-ACCESS.md).
+
+```bash
+make insat-status
+```
+
+INSAT-3DR holds **1,947 granules** over Fani's window against the 18 MODIS day
+passes currently used, at a measured 8.1-minute cadence with **published**
+timestamps rather than estimated ones. That directly removes both error terms
+identified in [docs/FINDING-eye-detection.md](docs/FINDING-eye-detection.md) as
+the ceiling on IR centre-fixing.
+
+The HDF5 reader is not written yet — it needs a real granule on disk to read the
+variable layout off. Everything upstream and downstream of it is done.
+
 ## The three protective tests
 
 These exist because each one guards a claim that, if false, ends the submission.
