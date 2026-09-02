@@ -23,15 +23,38 @@ const GRACE_MS = 6000;
 
 export function MapStatus({ map }: { map: maplibregl.Map | null }) {
   const [dx, setDx] = useState<Diagnosis>({ state: "checking" });
+  // Bumped to re-arm the whole check when the tab becomes visible again.
+  const [attempt, setAttempt] = useState(0);
+
+  // A backgrounded tab freezes requestAnimationFrame, so the check below
+  // correctly concludes "not rendering" — and then the verdict used to stick
+  // forever, because it latched. Someone who loaded the console in a background
+  // tab and switched to it later saw a permanent failure banner over a map that
+  // was working perfectly. Re-run the diagnosis whenever the tab comes forward.
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === "visible") setAttempt((n) => n + 1);
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, []);
 
   useEffect(() => {
     if (!map) return;
-    let done = false;
+    let verdictGiven = false;
 
-    const settle = (d: Diagnosis) => { if (!done) { done = true; setDx(d); } };
+    // "ok" always wins and is never latched out: if the style loads at any point
+    // — including long after a failure verdict — the banner must clear.
+    const settle = (d: Diagnosis) => {
+      if (d.state === "ok") { verdictGiven = true; setDx(d); return; }
+      if (!verdictGiven) { verdictGiven = true; setDx(d); }
+    };
 
-    // If the style loads, everything upstream of it worked.
-    const onIdle = () => { if (map.isStyleLoaded()) settle({ state: "ok" }); };
+    setDx({ state: "checking" });
+
+    // If the style loads, everything upstream of it worked. These stay attached
+    // for the lifetime of the effect, not just until the first verdict.
+    const onIdle = () => { if (map.isStyleLoaded()) setDx({ state: "ok" }); };
     map.on("idle", onIdle);
     map.on("load", onIdle);
     if (map.isStyleLoaded()) settle({ state: "ok" });
@@ -46,7 +69,6 @@ export function MapStatus({ map }: { map: maplibregl.Map | null }) {
 
     const timer = window.setTimeout(async () => {
       cancelAnimationFrame(raf);
-      if (done) return;
       if (map.isStyleLoaded()) return settle({ state: "ok" });
 
       // 1. Can this browser do WebGL at all?
@@ -69,8 +91,20 @@ export function MapStatus({ map }: { map: maplibregl.Map | null }) {
         });
       }
 
-      // 2. Is the page actually painting?
+      // 2. Is the page actually painting? A hidden tab is not a fault, so say
+      // that plainly rather than implying the map is broken.
       if (frames === 0) {
+        if (document.visibilityState !== "visible") {
+          return settle({
+            state: "failed",
+            title: "Map paused — tab is in the background",
+            detail:
+              "Browsers freeze animation frames in background tabs, and " +
+              "MapLibre finishes loading its style inside one. Nothing is " +
+              "wrong with the map.",
+            fix: "It will finish loading on its own when you switch to this tab.",
+          });
+        }
         return settle({
           state: "failed",
           title: "The page is not rendering",
@@ -112,13 +146,13 @@ export function MapStatus({ map }: { map: maplibregl.Map | null }) {
     }, GRACE_MS);
 
     return () => {
-      done = true;
+      verdictGiven = true;
       window.clearTimeout(timer);
       cancelAnimationFrame(raf);
       map.off("idle", onIdle);
       map.off("load", onIdle);
     };
-  }, [map]);
+  }, [map, attempt]);
 
   if (dx.state !== "failed") return null;
 

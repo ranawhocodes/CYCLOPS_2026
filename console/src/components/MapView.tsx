@@ -62,6 +62,8 @@ export function MapView() {
   const ref = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const [ready, setReady] = useState(false);
+  const irGen = useRef(0);
+  const appliedUrl = useRef<string | null>(null);
   // State, not just the ref, so MapStatus re-runs its checks once the map exists.
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
   const followed = useRef<string | null>(null);
@@ -87,6 +89,17 @@ export function MapView() {
       minZoom: 2.5,
     });
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+
+    // Superseding an image source's in-flight request makes MapLibre abort it.
+    // That is the intended outcome of showing the newest frame, not an error, so
+    // it is filtered rather than left to spam the console during a fast replay.
+    m.on("error", (e) => {
+      const msg = String((e as { error?: Error }).error?.message ?? "");
+      const name = String((e as { error?: Error }).error?.name ?? "");
+      if (name === "AbortError" || msg.includes("signal is aborted")) return;
+      // eslint-disable-next-line no-console
+      console.warn("[map]", msg || e);
+    });
 
     m.on("load", () => {
       m.addSource("ir", { type: "image", url: BLANK, coordinates: [
@@ -195,21 +208,45 @@ export function MapView() {
     const corners = classify?.frame_corners;
     if (!src || !georefUrl || !corners || corners.length !== 4) return;
 
-    // Decode before handing the bitmap to MapLibre. updateImage with a URL that
-    // has not loaded yet leaves the previous frame on screen for a beat, which
-    // during a fast replay shows imagery one step behind the track.
+    // Only apply the LATEST frame.
+    //
+    // Three console errors came from this block. Pre-decoding the image and then
+    // asking MapLibre to fetch the same URL again meant two requests per frame;
+    // during a 120x replay the next updateImage aborted the previous in-flight
+    // one (AbortError) and occasionally handed the GL layer a half-decoded
+    // bitmap (InvalidStateError: the source image could not be decoded). There
+    // was also no cancellation, so a slow load for an old frame could land after
+    // a newer one and put stale imagery on the map.
+    //
+    // Now: a generation counter discards stale loads, the URL is skipped if it
+    // is already applied, and coordinates travel with the image in a single
+    // atomic updateImage rather than a separate setCoordinates that could
+    // interleave with it.
+    if (appliedUrl.current === georefUrl) return;
+
+    const gen = ++irGen.current;
+    let cancelled = false;
+
     const img = new Image();
-    img.crossOrigin = "anonymous";
+    img.decoding = "async";
     img.onload = () => {
+      if (cancelled || gen !== irGen.current) return;   // a newer frame won
       try {
         const [tl, tr, br, bl] = corners;
-        src.setCoordinates([tl, tr, br, bl]);
-        src.updateImage({ url: georefUrl });
+        src.updateImage({ url: georefUrl, coordinates: [tl, tr, br, bl] });
+        appliedUrl.current = georefUrl;
       } catch {
-        /* source torn down mid-flight during a case switch */
+        /* source torn down mid-flight during a teardown */
       }
     };
+    img.onerror = () => {
+      if (cancelled || gen !== irGen.current) return;
+      // Leave the previous frame up rather than blanking the imagery: a dropped
+      // frame during replay is far less confusing than the storm vanishing.
+    };
     img.src = georefUrl;
+
+    return () => { cancelled = true; };
   }, [georefUrl, classify?.frame_corners, ready]);
 
   // -- observed track ----------------------------------------------------
