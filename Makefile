@@ -49,6 +49,10 @@ fani:  ## fetch real MODIS scenes for Fani and run identification + Dvorak
 insat-status:  ## check MOSDAC/INSAT access (search is open; downloads need an account)
 	$(EXPORT) $(PY) -m cyclops.data.insat_cli status
 
+.PHONY: insat-selftest
+insat-selftest:  ## verify the INSAT L1B reader against a synthetic granule
+	$(EXPORT) $(PY) -W ignore -m cyclops.data.insat_selftest
+
 .PHONY: insat-plan
 insat-plan:  ## size an INSAT download for Fani's window before committing to it
 	$(EXPORT) $(PY) -m cyclops.data.insat_cli plan --start 2019-04-25 --end 2019-05-05 --every 180

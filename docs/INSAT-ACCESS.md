@@ -100,14 +100,55 @@ MODIS gives, with exact timestamps, at 25 GB.
   --sat 3DR --start 2019-04-25 --end 2019-05-05 --every 180
 ```
 
-## What is not done yet
+## The HDF5 reader
 
-The HDF5 **reader** is not written. `download()` fetches L1B `.h5` granules; the
-step that opens one, pulls the TIR-1 (10.8 µm) channel, applies the calibration
-to brightness temperature and reprojects to a storm-centred grid does not exist,
-because it cannot be written blind — the group and variable layout has to be
-read off a real file.
+Written. `cyclops/data/insat_reader.py`.
 
-That is the next task once one granule is on disk, and it is a few hours' work:
-the tensor contract (`cyclops/preprocess.py`) and the whole analysis chain are
-already fixed, so INSAT enters as one more loader beside `gibs.py`.
+```bash
+make insat-selftest                                    # 14 checks, no account needed
+python -m cyclops.data.insat_reader describe file.h5   # run this on the FIRST real granule
+python -m cyclops.data.insat_reader read file.h5 17.0 85.0
+```
+
+### The one thing that matters
+
+L1B stores raw detector **counts** plus a per-calibration lookup table, not
+physical values. Brightness temperature is `IMG_TIR1_TEMP[IMG_TIR1]`.
+
+Reading `IMG_TIR1` directly raises no error and yields plausible-looking
+integers — it just silently is not temperature. The reader applies the LUT, and
+`test_lut_is_applied_not_raw_counts` range-checks the output because nothing
+else would catch it.
+
+| variable | meaning |
+|---|---|
+| `IMG_TIR1` | counts, 2-D, 4 km, carries `_FillValue` |
+| `IMG_TIR1_TEMP` | LUT: count → brightness temperature (K) |
+| `Longitude`, `Latitude` | 2-D geolocation, same grid |
+| `IMG_WV`, `Longitude_WV` | water vapour, 8 km |
+| `Acquisition_Start_Time` | `%d-%b-%YT%H:%M:%S` |
+
+Layout taken from satpy's `insat3d_img_l1b_h5`, the maintained reference reader.
+
+### Resampling
+
+Full-disk geostationary geolocation is 2-D, so the storm crop is a nearest-
+neighbour KD-tree query — what `pyresample.kd_tree.resample_nearest` does
+internally, done with scipy so the demo does not need the whole geospatial
+stack. Source pixels beyond a metric cutoff are left invalid, so the disk edge
+and any data gap stay visible as gaps instead of being stretched.
+
+### Validation status
+
+Tested end to end against a **synthetic granule** built to the documented layout:
+LUT direction, fill masking, geolocation, resampling, and recovery of a known
+eye (−24.3 °C read vs −20 °C built) and eyewall (−84.9 vs −85.0). The decisive
+check is that `centre_fix` and `dvorak` run on an INSAT scene **unchanged** and
+return a 10.2 km centre error and `EYE T7.0` — INSAT is a genuine drop-in for
+MODIS, not a parallel path.
+
+It has **not** been run on a real MOSDAC granule, because that needs an account.
+`describe()` is built for that moment: point it at the first real file and it
+prints the actual structure, so a layout difference shows up immediately instead
+of becoming wrong temperatures. A granule with an unexpected layout raises
+`InsatFormatError` naming what is missing.

@@ -213,8 +213,12 @@ timestamps rather than estimated ones. That directly removes both error terms
 identified in [docs/FINDING-eye-detection.md](docs/FINDING-eye-detection.md) as
 the ceiling on IR centre-fixing.
 
-The HDF5 reader is not written yet — it needs a real granule on disk to read the
-variable layout off. Everything upstream and downstream of it is done.
+The HDF5 reader is written (`make insat-selftest`, 14 checks). L1B stores counts
+plus a calibration LUT, so brightness temperature is `IMG_TIR1_TEMP[IMG_TIR1]` —
+reading the counts directly raises no error and simply is not temperature. It is
+validated against a synthetic granule built to the documented layout, including
+the check that `centre_fix` and `dvorak` consume an INSAT scene unchanged. It has
+not yet seen a real granule; run `describe` on the first one.
 
 ## The three protective tests
 
