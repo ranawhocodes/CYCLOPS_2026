@@ -96,7 +96,11 @@ export function MapView() {
         id: "ir-layer",
         type: "raster",
         source: "ir",
-        paint: { "raster-opacity": 0.82, "raster-fade-duration": 220 },
+        // The renderer already carries alpha per pixel, so this should not dim
+        // it a second time — at 0.82 with the old weak ramp the storm was a grey
+        // smudge. Held slightly under 1.0 so the flow layer above still reads
+        // over the brightest cloud, where the strongest winds are.
+        paint: { "raster-opacity": 0.88, "raster-fade-duration": 220 },
       });
 
       m.addSource("cone", { type: "geojson", data: EMPTY });

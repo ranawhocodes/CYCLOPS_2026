@@ -2,22 +2,29 @@ import { useEffect, useRef } from "react";
 import type maplibregl from "maplibre-gl";
 
 /**
- * Animated particle-flow layer over the scatterometer wind field.
+ * Animated particle-flow layer over the storm's wind field.
  *
- * Particles are advected through the retrieved 10 m wind and leave short decaying
- * trails, the same idea as earth.nullschool.net. It is not decoration: a static
- * arrow field makes it hard to see the circulation, whereas motion makes the
- * vortex, the inflow angle and the swath edge immediately legible.
+ * Parcels are advected through the 10 m wind and leave decaying trails, the same
+ * idea as earth.nullschool.net. It is not decoration: a static arrow field makes
+ * the circulation hard to read, whereas motion makes the vortex and the inflow
+ * angle immediately legible.
  *
- * Two honesty constraints shape the implementation:
+ * WHICH FIELD THIS DRAWS
+ * ----------------------
+ * The ANALYSED wind field — the storm's full circulation. A cyclone has wind
+ * everywhere, so that is what a forecaster reasons about and what a flow
+ * visualisation should show.
  *
- *  - Particles only exist inside the retrieved patch. The field covers a
- *    1024 km box around the storm, not the whole basin, so the animation stops
- *    at the data boundary rather than extrapolating motion nobody measured.
- *  - Cells with no retrieval come back null (outside the swath, or rain-flagged
- *    at high wind where Ku/C-band saturates). Particles entering those cells are
- *    respawned instead of drifting on a guessed value, so gaps in coverage stay
- *    visible as gaps.
+ * It is deliberately NOT the scatterometer retrieval. Drawing only what the
+ * instrument saw confined the animation to a narrow diagonal swath, which is
+ * honest about the observation but reads as a broken renderer. The
+ * observation-versus-analysis distinction is made where it belongs: the
+ * provenance panel reports actual swath coverage and flags the field as
+ * analysed, and the model still consumes the masked observation, not this.
+ *
+ * The field covers a 1024 km box around the storm rather than the whole basin,
+ * so the animation still stops at the data boundary rather than extrapolating
+ * motion nobody analysed.
  */
 
 export interface WindGrid {
@@ -38,9 +45,19 @@ interface Particle {
   life: number;
 }
 
-const PARTICLE_COUNT = 2600;
-const TRAIL_FADE = 0.90; // lower = shorter trails
-const SPEED_SCALE = 0.00055; // degrees per m/s per frame
+const PARTICLE_COUNT = 3200;
+// Higher = longer trails. At 0.90 the streaks were too short to read as motion;
+// a cyclone's signature is the ARC a parcel traces, and an arc needs length.
+const TRAIL_FADE = 0.955;
+const SPEED_SCALE = 0.00085; // degrees per m/s per frame
+
+// Particles are spawned with a bias toward the core rather than uniformly over
+// the box. In a modified-Rankine vortex the wind falls off as r^-0.55 outside
+// the radius of maximum wind, so a uniform spawn puts most particles in the
+// slow outer field where they drift almost straight and the rotation is
+// invisible. Concentrating them where the flow actually curves is what makes
+// the circulation legible.
+const CORE_BIAS = 1.9;
 
 export function WindParticles({
   map,
@@ -86,13 +103,23 @@ export function WindParticles({
 
     const { west, east, south, north } = grid.bbox;
 
+    const cLon = (west + east) / 2;
+    const cLat = (south + north) / 2;
+    const halfLon = (east - west) / 2;
+    const halfLat = (north - south) / 2;
+
     const spawn = (p: Particle) => {
-      p.lon = west + Math.random() * (east - west);
-      p.lat = south + Math.random() * (north - south);
+      // Radius sampled with a core bias; angle uniform. u**CORE_BIAS pulls the
+      // distribution inward, so most parcels start where the vortex is tight.
+      const u = Math.random();
+      const r = Math.pow(u, CORE_BIAS);
+      const th = Math.random() * Math.PI * 2;
+      p.lon = cLon + Math.cos(th) * r * halfLon;
+      p.lat = cLat + Math.sin(th) * r * halfLat;
       p.age = 0;
       // Varied lifetimes stop every particle respawning on the same frame,
       // which otherwise pulses visibly.
-      p.life = 40 + Math.random() * 90;
+      p.life = 60 + Math.random() * 120;
     };
 
     particles.current = Array.from({ length: PARTICLE_COUNT }, () => {
@@ -145,7 +172,6 @@ export function WindParticles({
       ctx.fillRect(0, 0, w, h);
       ctx.globalCompositeOperation = "source-over";
 
-      ctx.lineWidth = 1.15;
       ctx.lineCap = "round";
 
       for (const p of particles.current) {
@@ -178,8 +204,17 @@ export function WindParticles({
           const r = Math.round(53 + t * 199);
           const g = Math.round(196 - t * 132);
           const bl = Math.round(232 - t * 158);
-          const alpha = 0.35 + 0.55 * t;
-          ctx.strokeStyle = `rgba(${r},${g},${bl},${alpha})`;
+          // Fade in and out over the particle's life so streaks appear and
+          // vanish smoothly instead of popping.
+          const lifeFade = Math.min(1, Math.min(p.age, p.life - p.age) / 12);
+          // Lifted so streaks stay legible over bright cloud tops, which is
+          // exactly where the fastest air is and where the rotation most needs
+          // to be visible.
+          ctx.globalAlpha = (0.45 + 0.55 * t) * lifeFade;
+          ctx.strokeStyle = `rgb(${r},${g},${bl})`;
+          // Fast air draws heavier, so the eyewall reads as the strongest part
+          // of the field rather than every streak weighing the same.
+          ctx.lineWidth = 1.0 + 1.7 * t;
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
           ctx.lineTo(b.x, b.y);
@@ -190,6 +225,7 @@ export function WindParticles({
         p.lat = nextLat;
       }
 
+      ctx.globalAlpha = 1;
       raf.current = requestAnimationFrame(frame);
     };
 

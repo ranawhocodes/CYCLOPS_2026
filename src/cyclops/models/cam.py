@@ -79,36 +79,55 @@ def frame_png(ir_norm: np.ndarray, colormap: str = "bone") -> bytes:
     return buf.getvalue()
 
 
-def frame_png_georef(ir_norm: np.ndarray, floor: float = 0.30,
-                     gamma: float = 0.85) -> bytes:
+def frame_png_georef(ir_norm: np.ndarray, clear_c: float = -15.0,
+                     opaque_c: float = -55.0) -> bytes:
     """
     Render the IR channel for draping on the map, with an alpha channel.
 
-    Clear air must be transparent so the coastline and track show through --
-    an opaque square of imagery sitting on the basemap reads as a UI artefact,
-    whereas cloud that fades into the ocean reads as a satellite image. This is
-    what geostationary imagery looks like on an operational display.
+    Clear air is transparent so the coastline and track read through; cloud
+    becomes opaque as it cools. The thresholds are stated in DEGREES CELSIUS
+    rather than normalised units because that is the quantity that means
+    something: nothing warmer than `clear_c` is drawn, and anything colder than
+    `opaque_c` is fully opaque.
 
-    `floor` is the normalised brightness below which a pixel is treated as
-    cloud-free. `ir_norm` maps cold high, so low values are warm sea surface.
-    Alpha ramps from there rather than stepping, otherwise the cloud edge gets a
-    hard rectangle-ish boundary where the CDO fades out.
+    The previous ramp was written in normalised units and was far too weak —
+    -78 C deep convection reached only 0.70 alpha and -33 C mid cloud sat at
+    0.33, so the storm rendered as a faint grey smudge. Working in Celsius makes
+    that mistake visible instead of hiding it behind a magic 0.30.
+
+    Colour follows the Dvorak BD enhancement: ordinary cloud greyscale, then the
+    enhancement colours for the coldest tops. That is the same colour language
+    the rest of the console uses, and it is what makes the eyewall legible.
     """
     from PIL import Image
 
     x = np.clip(np.asarray(ir_norm, dtype=np.float32), 0.0, 1.0)
-    alpha = np.clip((x - floor) / max(1e-6, 1.0 - floor), 0.0, 1.0) ** gamma
+    # normalise_bt maps cold high: x = 1 - (BT - BT_MIN) / (BT_MAX - BT_MIN)
+    from ..config import BT_MAX, BT_MIN
+    from ..domain.imd import KELVIN
+    bt_c = (BT_MAX - x * (BT_MAX - BT_MIN)) - KELVIN
 
-    # Cold cloud tops render near-white, warmer mid-level cloud picks up the
-    # console's cyan so the overlay sits in the same palette as everything else.
-    cold = np.stack([np.full_like(x, 0.95), np.full_like(x, 0.98),
-                     np.full_like(x, 1.00)], axis=-1)
-    warm = np.stack([np.full_like(x, 0.42), np.full_like(x, 0.68),
-                     np.full_like(x, 0.82)], axis=-1)
-    t = np.clip((x - floor) / max(1e-6, 1.0 - floor), 0.0, 1.0)[..., None]
-    rgb = (warm * (1.0 - t) + cold * t)
+    alpha = np.clip((clear_c - bt_c) / max(1e-6, clear_c - opaque_c), 0.0, 1.0) ** 0.75
 
-    rgba = np.concatenate([rgb, alpha[..., None]], axis=-1)
+    # BD ramp, warm -> cold. Greys through white for ordinary convection, then
+    # the enhancement colours where Dvorak analysis actually keys.
+    stops_c = np.array([0.0, -20.0, -35.0, -50.0, -62.0, -70.0, -76.0, -82.0, -92.0])
+    stops_rgb = np.array([
+        (0.30, 0.42, 0.52),   #   0 C  thin low cloud
+        (0.58, 0.70, 0.78),   # -20
+        (0.82, 0.88, 0.92),   # -35
+        (0.97, 0.98, 1.00),   # -50  bright white
+        (0.36, 0.82, 0.44),   # -62  BD green
+        (0.95, 0.78, 0.24),   # -70  BD amber
+        (0.95, 0.50, 0.24),   # -76  BD orange
+        (0.91, 0.25, 0.29),   # -82  BD red
+        (0.66, 0.13, 0.47),   # -92  BD violet, overshooting tops
+    ])
+    rgb = np.empty((*x.shape, 3), np.float32)
+    for ch in range(3):
+        rgb[..., ch] = np.interp(bt_c, stops_c[::-1], stops_rgb[::-1, ch])
+
+    rgba = np.concatenate([rgb, alpha[..., None].astype(np.float32)], axis=-1)
     img = (np.clip(rgba, 0, 1) * 255).astype(np.uint8)
     buf = io.BytesIO()
     Image.fromarray(img, mode="RGBA").save(buf, "PNG", optimize=True)
