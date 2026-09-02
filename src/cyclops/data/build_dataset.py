@@ -115,7 +115,9 @@ def build(max_samples: int | None = None, seed: int = SEED) -> dict:
             "doy_sin": row.doy_sin, "doy_cos": row.doy_cos,
             "hours_since_wind": hours_since, "wind_coverage": w["coverage"],
         }
-        p = preprocess_sample(s["tir1_k"], s["wv_k"], w["u10"], w["v10"],
+        # The model sees what the instrument saw, not the analysed field.
+        p = preprocess_sample(s["tir1_k"], s["wv_k"],
+                              w.get("u10_obs"), w.get("v10_obs"),
                               w["mask"], env_d)
         ir[i] = p["ir"].astype(np.float16)
         wind[i] = p["wind"].astype(np.float16)

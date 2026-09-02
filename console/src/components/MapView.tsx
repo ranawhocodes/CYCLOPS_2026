@@ -239,12 +239,40 @@ export function MapView() {
         properties: { color: catColor(classify?.imd_category ?? last.imd_category) },
         geometry: { type: "Point", coordinates: [last.lon, last.lat] },
       });
-      // Recentre only on a case change, not on every step. Panning the map out
-      // from under someone who is inspecting it is worse than letting the storm
-      // drift toward an edge.
-      if (activeCase && followed.current !== activeCase.id) {
-        followed.current = activeCase.id;
-        m.easeTo({ center: [last.lon, last.lat], zoom: 4.6, duration: 800 });
+      // Keep the storm framed.
+      //
+      // Three attempts got here. Recentring on every step jittered. Recentring
+      // only on a case change lost the storm completely — Fani travels about 20
+      // degrees of latitude, so it walked off the top of the screen and took the
+      // imagery and the wind field with it. A "only when it leaves the middle
+      // third" test still drifted several degrees at the ends of the track,
+      // because a scrub can move the storm further in one step than the margin.
+      //
+      // So the camera simply follows the subject, eased, and offset left of
+      // centre because the right rail covers roughly a third of the canvas. A
+      // long jump (scrubbing) snaps instead of easing, since a two-second glide
+      // across the basin is worse than an instant cut.
+      const target: [number, number] = [last.lon, last.lat];
+      const c = m.getCenter();
+      const drift = Math.hypot(c.lng - target[0], c.lat - target[1]);
+      const firstFix = followed.current !== activeCase?.id;
+
+      if (activeCase && (firstFix || drift > 0.25)) {
+        // Shift the look-at point so the storm sits in the clear left-of-centre
+        // area rather than under the rail.
+        const { width: w } = m.getContainer().getBoundingClientRect();
+        const px = m.project(target);
+        px.x += w * 0.16;
+        const shifted = m.unproject(px);
+
+        if (firstFix) {
+          followed.current = activeCase.id;
+          m.easeTo({ center: shifted, zoom: 5.0, duration: 900, essential: true });
+        } else if (drift > 4) {
+          m.jumpTo({ center: shifted });
+        } else {
+          m.easeTo({ center: shifted, duration: 700, essential: true });
+        }
       }
     }
   }, [observed, classify, ready, activeCase]);

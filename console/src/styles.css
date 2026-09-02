@@ -650,3 +650,164 @@ button, select, input { font-family: inherit; font-size: inherit; color: inherit
 }
 .tag-ctl { color: var(--bd-amber); border-color: rgba(242, 198, 61, 0.5); }
 .tag-oos { color: var(--bd-green); border-color: rgba(59, 209, 111, 0.5); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PREMIUM PASS
+
+   Three changes, each with a reason:
+
+   1. Depth through layered translucency and a single soft light source, rather
+      than borders doing all the work. Panels sit ON the map instead of beside
+      it, so they need to read as glass, not as boxes.
+   2. Numerals are tabular and slightly tightened. Values update several times a
+      second during replay; proportional digits visibly jitter.
+   3. Motion is confined to state changes that matter — a category step, an
+      alert arriving, the lifecycle head advancing. Everything else is instant.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --glass: rgba(9, 17, 24, 0.72);
+  --glass-hi: rgba(18, 32, 43, 0.78);
+  --hairline: rgba(120, 165, 195, 0.14);
+  --hairline-hi: rgba(120, 165, 195, 0.30);
+  --glow-cyan: 0 0 24px rgba(53, 196, 232, 0.18);
+  --lift: 0 1px 0 rgba(255, 255, 255, 0.04) inset,
+          0 18px 48px -12px rgba(0, 0, 0, 0.75);
+}
+
+.mono, .kt-value, .metrics, .fc td, .prov-age, .tl-clock-v,
+.lc-now .mono, .fani-kv b { font-variant-numeric: tabular-nums; }
+
+/* ---------- glass panels ---------- */
+.hud {
+  background: var(--glass);
+  border-color: var(--hairline);
+  box-shadow: var(--lift);
+}
+.panel {
+  background: linear-gradient(180deg,
+              rgba(20, 34, 46, 0.55), rgba(9, 17, 24, 0.42));
+  border-color: var(--hairline);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+}
+.hud-top { padding: 9px 14px; }
+.rail { padding: 11px; gap: 11px; }
+
+/* ---------- header identity ---------- */
+.brand-text h1 { letter-spacing: 0.2em; font-weight: 600; }
+.brand-text p {
+  font-size: 9.5px; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--dim); opacity: 0.85;
+}
+.storm-id { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.storm-name {
+  font-size: 15px; font-weight: 650; letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.storm-meta { font-size: 12px; color: var(--bd-cyan); }
+.storm-note { font-size: 10.5px; color: var(--dim); }
+
+/* ---------- lifecycle ---------- */
+.lifecycle {
+  background: linear-gradient(180deg,
+              rgba(20, 34, 46, 0.6), rgba(9, 17, 24, 0.45));
+  border: 1px solid var(--hairline);
+  border-radius: 8px; padding: 11px 13px 13px;
+}
+.lc-head { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+.lc-task {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 9px; letter-spacing: 0.14em; font-weight: 700;
+}
+.lc-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+.lc-stage { font-size: 13px; font-weight: 600; margin-left: auto; }
+.lc-trend {
+  font-family: var(--mono); font-size: 10px; padding: 1px 6px; border-radius: 3px;
+}
+.lc-trend.up { color: var(--bd-red); background: rgba(232, 64, 74, 0.13); }
+.lc-trend.down { color: var(--bd-cyan); background: rgba(53, 196, 232, 0.13); }
+
+.lc-track {
+  position: relative; height: 22px; margin: 10px 0 3px;
+  border-radius: 4px; overflow: hidden; background: rgba(0, 0, 0, 0.35);
+}
+.lc-span {
+  position: absolute; top: 0; bottom: 0; opacity: 0.30;
+  transition: opacity 200ms;
+}
+.lc-span.on { opacity: 0.72; }
+.lc-trace { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lc-head-marker {
+  position: absolute; top: -2px; bottom: -2px; width: 2px;
+  background: #fff; box-shadow: 0 0 8px rgba(255, 255, 255, 0.9);
+  transform: translateX(-1px); transition: left 280ms ease;
+}
+.lc-labels { position: relative; height: 11px; }
+.lc-label {
+  position: absolute; font-size: 8.5px; color: var(--dim);
+  letter-spacing: 0.03em; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; padding-right: 4px;
+}
+.lc-detail {
+  font-size: 10.5px; color: var(--dim); line-height: 1.55; margin: 8px 0 0;
+}
+.lc-now {
+  display: flex; align-items: baseline; gap: 8px; margin-top: 9px;
+  padding-top: 8px; border-top: 1px solid var(--hairline);
+  font-size: 12px;
+}
+.lc-now-cat { font-family: var(--mono); font-weight: 700; font-size: 13px; }
+.lc-now .dim { font-size: 9.5px; margin-left: auto; }
+
+/* ---------- readouts ---------- */
+.kt-value {
+  font-weight: 250; letter-spacing: -0.035em;
+  text-shadow: 0 0 30px rgba(53, 196, 232, 0.22);
+}
+.cat-badge { border-left-width: 2px; }
+.cat-abbr { text-shadow: 0 0 18px currentColor; }
+
+/* The interval bar reads as a measurement, not a progress bar. */
+.ci-track {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: var(--hairline);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
+}
+.ci-band { opacity: 0.5; }
+.ci-point { box-shadow: 0 0 10px rgba(255, 255, 255, 0.8); }
+
+/* ---------- controls ---------- */
+.icon-btn, .btn {
+  background: var(--glass-hi);
+  border-color: var(--hairline);
+  backdrop-filter: blur(8px);
+}
+.icon-btn:hover, .btn:hover {
+  border-color: var(--hairline-hi);
+  box-shadow: var(--glow-cyan);
+}
+.timeline { background: var(--glass); border-color: var(--hairline); }
+.tl-strip { box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05) inset; }
+
+/* ---------- alerts arrive, they do not just appear ---------- */
+@keyframes alert-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: none; }
+}
+.alert:first-child { animation: alert-in 260ms ease-out; }
+.alert-critical .alert-icon { text-shadow: 0 0 12px var(--bd-red); }
+
+/* ---------- map chrome ---------- */
+.legend {
+  background: var(--glass); border-color: var(--hairline);
+  box-shadow: var(--lift); backdrop-filter: blur(10px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lc-head-marker, .lc-span, .alert:first-child {
+    transition: none !important; animation: none !important;
+  }
+}

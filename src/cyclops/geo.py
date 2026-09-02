@@ -55,7 +55,9 @@ def patch_bbox(lat: float, lon: float, patch_km: float = PATCH_KM
 
 def wind_grid_payload(u10: np.ndarray, v10: np.ndarray, mask: np.ndarray,
                       lat: float, lon: float, stride: int = 2,
-                      patch_km: float = PATCH_KM) -> dict:
+                      patch_km: float = PATCH_KM,
+                      analysed: bool = True,
+                      observed_coverage: float | None = None) -> dict:
     """
     Downsample a wind field into a compact JSON grid for the particle layer.
 
@@ -64,13 +66,22 @@ def wind_grid_payload(u10: np.ndarray, v10: np.ndarray, mask: np.ndarray,
     -- the source is a 25 km scatterometer retrieval and the particle layer
     interpolates between nodes anyway.
 
-    Invalid cells (outside the swath, or rain-flagged) are sent as null so the
-    console can render coverage gaps honestly instead of interpolating across
-    them as if data existed.
+    `analysed=True` sends the full circulation, which is what the flow layer
+    draws: a cyclone has wind everywhere, and masking the display to the
+    scatterometer swath made the console look broken rather than honest. The
+    observed swath coverage is reported separately in `coverage`, and the
+    provenance panel is where the observation-versus-analysis distinction is
+    stated.
+
+    `analysed=False` masks to what the instrument actually saw, which is what a
+    model input must use.
     """
     u = np.asarray(u10, np.float32)[::stride, ::stride]
     v = np.asarray(v10, np.float32)[::stride, ::stride]
     m = np.asarray(mask, np.float32)[::stride, ::stride] > 0.5
+    if analysed:
+        # Still drop anything non-finite, but do not clip to the swath.
+        m = np.isfinite(u) & np.isfinite(v)
 
     ny, nx = u.shape
     bbox = patch_bbox(lat, lon, patch_km)
@@ -86,6 +97,12 @@ def wind_grid_payload(u10: np.ndarray, v10: np.ndarray, mask: np.ndarray,
         "v": [None if not ok else round(float(a), 1)
               for a, ok in zip(v.ravel(), m.ravel())],
         "max_speed_ms": round(float(speed[m].max()) if m.any() else 0.0, 1),
-        "coverage": round(float(m.mean()), 3),
+        # What the instrument actually saw. Passed in by the caller, because
+        # deriving it from the analysed mask reports a swath on frames that had
+        # no pass at all.
+        "coverage": round(float(observed_coverage), 3)
+                    if observed_coverage is not None
+                    else round(float(np.asarray(mask, np.float32)[::stride, ::stride].mean()), 3),
+        "field": "analysed" if analysed else "observed",
         "units": "m/s at 10 m",
     }

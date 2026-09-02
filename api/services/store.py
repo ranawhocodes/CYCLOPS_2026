@@ -30,12 +30,13 @@ from cyclops.preprocess import preprocess_sample  # noqa: E402
 
 # Cases offered in the console. All are in held-out test seasons, so the replay
 # is an out-of-sample demonstration and not a recital of training data.
+# One storm, followed properly, from the depression that formed on 26 April 2019
+# to landfall near Puri on 3 May. Fani is the right single case: it is in a
+# held-out season, it ran the full IMD scale from D to ESCS, it underwent rapid
+# intensification, and it made landfall on the Indian coast — so identification,
+# classification and nowcasting all have something to show on the same storm.
 FEATURED = [
-    ("2019116N02090", "Fani",     "Odisha landfall; rapid intensification"),
-    ("2020136N10088", "Amphan",   "Explosive intensification; Sundarbans"),
-    ("2023129N08091", "Mocha",    "Extreme intensity; Myanmar/Bangladesh"),
-    ("2019296N15066", "Kyarr",    "Arabian Sea; strongest since 2007"),
-    ("2023156N10067", "Biparjoy", "Long-lived Arabian Sea; Gujarat"),
+    ("2019116N02090", "Fani", "Bay of Bengal · depression to ESCS · Odisha landfall"),
 ]
 
 
@@ -118,14 +119,25 @@ class CaseStore:
         # Scatterometer coincidence: a pass roughly twice a day, so about one
         # synoptic fix in three has one. Deterministic in the seed so the
         # provenance panel shows the same staleness on every replay.
+        # The ANALYSED circulation exists at every timestep — a cyclone always
+        # has a wind field. Only the scatterometer OBSERVATION is intermittent
+        # (a pass roughly twice a day). Generating the analysed field only when
+        # a pass existed made the flow layer vanish on two frames in three,
+        # which looked like a broken renderer rather than sparse observation.
+        w = render_wind_field(float(row.wind_kt_3min), float(row.lat),
+                              float(s["rmw_km"]), seed=seed)
+
         has_wind = (seed % 3) == 0
-        if has_wind:
-            w = render_wind_field(float(row.wind_kt_3min), float(row.lat),
-                                  float(s["rmw_km"]), seed=seed)
-            hours_since = round((seed % 180) / 60.0, 1)
-        else:
-            w = {"u10": None, "v10": None, "mask": None, "coverage": 0.0}
-            hours_since = None
+        hours_since = round((seed % 180) / 60.0, 1) if has_wind else None
+        if not has_wind:
+            # No coincident pass: the observed field and its mask are empty, so
+            # the model correctly sees "no wind data" while the display still
+            # has the analysed circulation to draw.
+            import numpy as _np
+            w["u10_obs"] = None
+            w["v10_obs"] = None
+            w["mask_obs"] = None
+            w["coverage"] = 0.0
 
         env = {
             "lat": row.lat, "lon": row.lon, "sst_c": row.sst_c,
@@ -137,8 +149,11 @@ class CaseStore:
             "hours_since_wind": hours_since if hours_since is not None else 12.0,
             "wind_coverage": w["coverage"],
         }
-        tensors = preprocess_sample(s["tir1_k"], s["wv_k"], w["u10"], w["v10"],
-                                    w["mask"], env)
+        # Model inputs use the OBSERVED (swath-masked) wind; the console's flow
+        # layer separately requests the analysed field for display.
+        tensors = preprocess_sample(s["tir1_k"], s["wv_k"],
+                                    w.get("u10_obs"), w.get("v10_obs"),
+                                    w.get("mask_obs"), env)
         out = {
             "row": row, "scene": s, "wind": w, "tensors": tensors,
             "provenance": {

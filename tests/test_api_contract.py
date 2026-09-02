@@ -23,13 +23,38 @@ def test_health_reports_model_and_data_status(client):
 
 
 def test_cases_are_all_from_held_out_seasons(client):
+    """
+    The console follows one storm end to end rather than offering a menu, so
+    exactly one case is expected. It must still be from a held-out season —
+    otherwise the replay is a recital of training data.
+    """
     cases = client.get("/v1/cases").json()
-    assert len(cases) >= 3
-    for c in cases:
-        assert {"id", "name", "season", "peak_category", "n_frames"} <= set(c)
-        assert c["season"] in (2019, 2020, 2023), \
-            f"{c['name']} is not in a held-out test season; the replay would " \
-            f"be a recital of training data"
+    assert len(cases) == 1, "the console is deliberately single-case (Fani)"
+    c = cases[0]
+    assert {"id", "name", "season", "peak_category", "n_frames"} <= set(c)
+    assert c["name"] == "Fani"
+    assert c["season"] in (2019, 2020, 2023), \
+        f"{c['name']} is not in a held-out test season"
+    # Fani ran the full IMD scale, which is why it is the case worth following.
+    assert c["peak_category"] == "ESCS"
+    assert c["n_frames"] >= 30, "too few frames to show a life cycle"
+
+
+def test_lifecycle_covers_identification_classification_prediction(client):
+    """
+    The three capabilities the problem statement asks for should each be
+    exercised somewhere in the storm's life, or the single-case framing does
+    not actually demonstrate them.
+    """
+    cid = client.get("/v1/cases").json()[0]["id"]
+    lc = client.get(f"/v1/cases/{cid}/lifecycle").json()
+    tasks = {s["task"] for s in lc["stages"]}
+    assert any("IDENTIFICATION" in t for t in tasks)
+    assert any("CLASSIFICATION" in t for t in tasks)
+    assert any("PREDICTION" in t for t in tasks)
+    labels = [s["label"] for s in lc["stages"]]
+    assert "Genesis" in labels and "Peak intensity" in labels
+    assert lc["per_fix"], "per-fix stages are what the console strip renders"
 
 
 def test_classify_always_carries_interval_provenance_and_version(client):

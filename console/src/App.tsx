@@ -11,8 +11,8 @@ import { IntensityChart } from "./components/IntensityChart";
 import { ForecastTable } from "./components/ForecastTable";
 import { Timeline } from "./components/Timeline";
 import { MetricsView } from "./components/MetricsView";
-import { CasePicker } from "./components/CasePicker";
 import { LayerControl } from "./components/LayerControl";
+import { Lifecycle } from "./components/Lifecycle";
 import { FaniStudy } from "./components/FaniStudy";
 
 const DISCLAIMER =
@@ -76,11 +76,19 @@ export default function App() {
           <span className="logo" aria-hidden>◎</span>
           <div className="brand-text">
             <h1>CYCLOPS</h1>
-            <p>North Indian Ocean · nowcast &amp; explainability</p>
+            <p>Identification · Classification · Prediction</p>
           </div>
         </div>
 
-        <CasePicker onSelect={start} />
+        {/* One storm, followed properly. The header names it rather than
+            offering a picker, because the point is depth on a single case. */}
+        {activeCase && (
+          <div className="storm-id">
+            <span className="storm-name">Cyclone {activeCase.name}</span>
+            <span className="storm-meta mono">{activeCase.season}</span>
+            <span className="storm-note">{activeCase.note}</span>
+          </div>
+        )}
 
         <div className="hud-actions">
           <LayerControl />
@@ -113,6 +121,7 @@ export default function App() {
 
       {railOpen && (
         <aside className="hud rail" aria-label="Analysis panels">
+          <Lifecycle caseId={activeCase?.id ?? null} />
           <IntensityPanel />
           <CamViewer />
           <ProvenancePanel />

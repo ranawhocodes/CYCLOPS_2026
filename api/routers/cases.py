@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request, Response
 
+from cyclops.domain.lifecycle import STAGES, annotate, summarise
 from cyclops.geo import wind_grid_payload
 
 from ._timeparse import parse_iso
@@ -83,15 +84,48 @@ async def case_wind(case_id: str, ts: str, request: Request):
 
     w = scene["wind"]
     row = scene["row"]
-    if w.get("mask") is None:
+    if w.get("u10") is None:
         return {"available": False,
-                "reason": "no coincident scatterometer pass at this time",
+                "reason": "no analysed wind field at this time",
                 "centre": {"lat": float(row.lat), "lon": float(row.lon)}}
 
+    # Analysed field for the flow layer; `coverage` still reports what the
+    # scatterometer actually saw, and the provenance panel says which is which.
     grid = wind_grid_payload(w["u10"], w["v10"], w["mask"],
-                             float(row.lat), float(row.lon))
+                             float(row.lat), float(row.lon), analysed=True,
+                             observed_coverage=w.get("coverage", 0.0))
     grid["available"] = True
+    grid["observed"] = bool(w.get("mask_obs") is not None)
     grid["source"] = (scene["provenance"]["wind"] or {}).get("source", "unknown")
     grid["age_min"] = (scene["provenance"]["wind"] or {}).get("age_min")
     grid["centre"] = {"lat": float(row.lat), "lon": float(row.lon)}
     return grid
+
+
+@router.get("/cases/{case_id}/lifecycle")
+async def case_lifecycle(case_id: str, request: Request):
+    """
+    The storm's life split into named stages, and which capability each exercises.
+
+    Identification, classification and prediction are not three separate demos —
+    they are three things a forecaster does at different points in one storm's
+    life. This is what lets the console say which one is being shown.
+    """
+    d = request.app.state.store.track(case_id)
+    if d.empty:
+        raise HTTPException(404, f"no track for case {case_id}")
+    ann = annotate(d)
+    return {
+        "case_id": case_id,
+        "stages": summarise(d),
+        "definitions": {k: {"label": v.label, "task": v.task, "detail": v.detail}
+                        for k, v in STAGES.items()},
+        "per_fix": [
+            {"ts": r.iso_time.isoformat(), "stage": r.stage,
+             "wind_kt": round(float(r.wind_kt_3min), 1),
+             "imd_category": r.imd_category,
+             "d24_kt": (round(float(r.d24_kt), 1)
+                        if r.d24_kt == r.d24_kt else None)}
+            for r in ann.itertuples()
+        ],
+    }

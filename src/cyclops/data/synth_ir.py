@@ -196,10 +196,25 @@ def render_wind_field(wind_kt: float, lat: float, rmw_km: float,
     rain_flag = (r < rmw_km * 1.4) & (wind_kt > 75)
     mask[rain_flag] = 0.0
 
+    # Two distinct things, kept separate on purpose:
+    #
+    #   u10/v10   the ANALYSED wind field over the whole storm. A cyclone has a
+    #             circulation everywhere, so this is what a forecaster reasons
+    #             about and what the flow visualisation should show.
+    #   *_obs     the same field masked to what a scatterometer actually SAW on
+    #             this pass. That is a narrow swath with rain-flagged gaps.
+    #
+    # Conflating them made the console render motion only inside a diagonal
+    # band, which is physically honest about the observation but reads as a
+    # broken renderer. The model consumes the observed field; the display shows
+    # the analysed one and labels it as analysed.
     return {
-        "u10": (u * mask).astype(np.float32),
-        "v10": (vv * mask).astype(np.float32),
+        "u10": u.astype(np.float32),
+        "v10": vv.astype(np.float32),
+        "u10_obs": (u * mask).astype(np.float32),
+        "v10_obs": (vv * mask).astype(np.float32),
         "mask": mask.astype(np.float32),
+        "mask_obs": mask.astype(np.float32),
         "coverage": float(mask.mean()),
         "synthetic": True,
     }
