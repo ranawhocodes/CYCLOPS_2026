@@ -1,27 +1,32 @@
 import { useEffect, useMemo, useState } from "react";
 import { useStore } from "../store";
-import { catColor } from "../lib/imd";
+import { IMD_8_SCALE, catColor, getCategoryByWind } from "../lib/imd";
 
 /**
- * The storm's life, and which capability each stage exercises.
+ * Operational IMD Classification Scale & Storm Lifecycle Component.
  *
- * Identification, classification and prediction are not three separate demos —
- * they are three things a forecaster does at different points in one storm's
- * life. Following one cyclone from the depression that formed on 26 April to
- * landfall near Puri is what makes that legible: the strip says where the
- * replay is, and the caption says what the system is being asked to do there.
- *
- * Stages come from the track itself (intensity, its 24 h change, distance to
- * land), not from hand-placed dates.
+ * Implements the official 8-step IMD operational taxonomy (L, D, DD, CS, SCS, VSCS, ESCS, SuCS)
+ * with a continuous wind speed indicator needle, and presents the storm's lifecycle
+ * stage (Genesis -> Intensifying -> Peak -> Decaying) as a separate, clearly distinguished badge.
  */
 
 interface StageSpan {
-  stage: string; label: string; task: string; detail: string;
-  start: string; end: string; peak_kt: number; n: number;
+  stage: string;
+  label: string;
+  task: string;
+  detail: string;
+  start: string;
+  end: string;
+  peak_kt: number;
+  n: number;
 }
+
 interface PerFix {
-  ts: string; stage: string; wind_kt: number;
-  imd_category: string; d24_kt: number | null;
+  ts: string;
+  stage: string;
+  wind_kt: number;
+  imd_category: string;
+  d24_kt: number | null;
 }
 
 const TASK_COLOR: Record<string, string> = {
@@ -35,102 +40,126 @@ export function Lifecycle({ caseId }: { caseId: string | null }) {
   const [spans, setSpans] = useState<StageSpan[] | null>(null);
   const [fixes, setFixes] = useState<PerFix[]>([]);
   const stormClock = useStore((s) => s.stormClock);
+  const classify = useStore((s) => s.classify);
 
   useEffect(() => {
     if (!caseId) return;
     fetch(`/v1/cases/${caseId}/lifecycle`)
       .then((r) => r.json())
-      .then((d) => { setSpans(d.stages); setFixes(d.per_fix ?? []); })
+      .then((d) => {
+        setSpans(d.stages);
+        setFixes(d.per_fix ?? []);
+      })
       .catch(() => setSpans(null));
   }, [caseId]);
 
-  const { t0, t1, nowPct, current } = useMemo(() => {
-    if (!fixes.length) return { t0: 0, t1: 1, nowPct: 0, current: null as PerFix | null };
-    const a = new Date(fixes[0].ts).getTime();
-    const b = new Date(fixes[fixes.length - 1].ts).getTime();
-    const now = stormClock ? new Date(stormClock).getTime() : a;
-    // Only fixes at or before the storm clock exist yet — the future is not
-    // previewed here any more than it is on the map.
+  const current = useMemo(() => {
+    if (!fixes.length) return null;
+    const now = stormClock ? new Date(stormClock).getTime() : new Date(fixes[0].ts).getTime();
     const seen = fixes.filter((f) => new Date(f.ts).getTime() <= now);
-    return {
-      t0: a, t1: b,
-      nowPct: Math.max(0, Math.min(100, ((now - a) / Math.max(1, b - a)) * 100)),
-      current: seen.length ? seen[seen.length - 1] : fixes[0],
-    };
+    return seen.length ? seen[seen.length - 1] : fixes[0];
   }, [fixes, stormClock]);
 
   if (!spans?.length) return null;
-
-  const pct = (iso: string) =>
-    ((new Date(iso).getTime() - t0) / Math.max(1, t1 - t0)) * 100;
 
   const active = spans.find(
     (s) => current && new Date(current.ts) >= new Date(s.start)
       && new Date(current.ts) <= new Date(s.end)
   ) ?? spans[0];
 
+  // Continuous wind speed for the needle (prefers live CYCLOPS fix, falls back to best-track)
+  const continuousKt = classify?.wind_kt ?? current?.wind_kt ?? 0;
+  const currentStep = getCategoryByWind(continuousKt);
+  const currentCat = classify?.imd_category ?? current?.imd_category ?? currentStep.abbr;
+
+  // Compute needle percentage position across the 8-segment IMD bar
+  const activeIdx = IMD_8_SCALE.findIndex((s) => s.abbr === currentStep.abbr);
+  const safeIdx = activeIdx >= 0 ? activeIdx : 0;
+  const step = IMD_8_SCALE[safeIdx];
+  const stepSpan = Math.max(1, step.max_kt - step.min_kt);
+  const stepFrac = Math.max(0, Math.min(1, (continuousKt - step.min_kt) / stepSpan));
+  const caretPct = Math.max(1, Math.min(99, ((safeIdx + stepFrac) / IMD_8_SCALE.length) * 100));
+
   return (
-    <section className="lifecycle" aria-label="Storm lifecycle">
-      <header className="lc-head">
-        <div className="lc-task" style={{ color: TASK_COLOR[active.task] ?? "#dfeaf3" }}>
-          <span className="lc-dot" style={{ background: TASK_COLOR[active.task] }} />
-          {active.task}
+    <section className="lifecycle" aria-label="IMD Classification & Lifecycle">
+      {/* 1. Distinct Lifecycle Stage Badge (Separated from Intensity Taxonomy) */}
+      <div className="lc-badge-row">
+        <div className="lc-stage-tag" style={{ borderColor: `${TASK_COLOR[active.task] ?? "#4a6478"}66` }}>
+          <span className="lc-dot" style={{ background: TASK_COLOR[active.task] ?? "#8fb8cc" }} />
+          <span style={{ color: TASK_COLOR[active.task] ?? "#dfeaf3" }}>{active.task}</span>
+          <span className="dim">·</span>
+          <span>{active.label}</span>
         </div>
-        <div className="lc-stage">{active.label}</div>
+
         {current?.d24_kt != null && Math.abs(current.d24_kt) >= 5 && (
           <div className={`lc-trend ${current.d24_kt > 0 ? "up" : "down"}`}>
             {current.d24_kt > 0 ? "▲" : "▼"} {Math.abs(current.d24_kt).toFixed(0)} kt / 24 h
           </div>
         )}
-      </header>
-
-      <div className="lc-track" role="img"
-           aria-label={`Lifecycle: currently ${active.label}`}>
-        {spans.map((s, i) => {
-          const left = pct(s.start);
-          const width = Math.max(1.5, pct(s.end) - left);
-          return (
-            <div key={i} className={`lc-span ${s === active ? "on" : ""}`}
-                 style={{ left: `${left}%`, width: `${width}%`,
-                          background: TASK_COLOR[s.task] ?? "#4a6478" }}
-                 title={`${s.label} — ${s.task}`} />
-          );
-        })}
-        {/* Intensity trace over the stages, revealed only up to the storm clock */}
-        <svg className="lc-trace" viewBox="0 0 100 22" preserveAspectRatio="none" aria-hidden>
-          <polyline
-            points={fixes
-              .filter((f) => new Date(f.ts).getTime() <= (t0 + (t1 - t0) * nowPct / 100))
-              .map((f) => `${pct(f.ts)},${22 - (f.wind_kt / 140) * 22}`)
-              .join(" ")}
-            fill="none" stroke="#ffffff" strokeOpacity="0.85" strokeWidth="0.9" />
-        </svg>
-        <div className="lc-head-marker" style={{ left: `${nowPct}%` }} />
       </div>
 
-      <div className="lc-labels">
-        {spans.map((s, i) => {
-          const left = pct(s.start);
-          const width = pct(s.end) - left;
-          if (width < 9) return null;
-          return (
-            <span key={i} className="lc-label"
-                  style={{ left: `${left}%`, width: `${width}%` }}>
-              {s.label}
-            </span>
-          );
-        })}
+      {/* 2. Official 8-Step IMD Operational Scale Bar */}
+      <div className="lc-imd-container" role="img" aria-label={`IMD Classification: ${currentCat}, ${continuousKt.toFixed(0)} knots`}>
+        <div className="lc-imd-meta">
+          <span>IMD SCALE (3-MIN SUSTAINED)</span>
+          <span className="lc-active-lbl" style={{ color: catColor(currentCat) }}>
+            {currentCat} · {continuousKt.toFixed(0)} kt
+          </span>
+        </div>
+
+        <div className="lc-imd-track">
+          {IMD_8_SCALE.map((s, idx) => {
+            const isActive = idx === safeIdx;
+            const isPast = idx < safeIdx;
+            return (
+              <div
+                key={s.abbr}
+                className={`lc-imd-seg ${isActive ? "active" : isPast ? "past" : ""}`}
+                style={{
+                  background: s.color,
+                }}
+                title={`${s.label} (${s.abbr}): ${s.min_kt}–${s.max_kt >= 160 ? "120+" : s.max_kt} kt`}
+              >
+                <span>{s.abbr}</span>
+              </div>
+            );
+          })}
+
+          {/* Continuous Caret Needle Indicator */}
+          <div
+            className="lc-imd-caret"
+            style={{ left: `${caretPct}%` }}
+            title={`Exact intensity: ${continuousKt.toFixed(1)} kt`}
+          />
+        </div>
+
+        {/* Operational threshold ticks */}
+        <div className="lc-imd-ticks" aria-hidden>
+          <span>0</span>
+          <span>17</span>
+          <span>28</span>
+          <span>34</span>
+          <span>48</span>
+          <span>64</span>
+          <span>90</span>
+          <span>120+</span>
+        </div>
       </div>
 
+      {/* Operational Task Context */}
       <p className="lc-detail">{active.detail}</p>
 
+      {/* 3. Verification Readouts (Best-track truth vs Model estimate) */}
       {current && (
-        <div className="lc-now">
-          <span className="lc-now-cat" style={{ color: catColor(current.imd_category) }}>
-            {current.imd_category}
+        <div className="lc-readout">
+          <span className="mono dim">
+            IBTrACS: <strong style={{ color: "var(--ink)" }}>{current.wind_kt.toFixed(0)} kt</strong> ({current.imd_category})
           </span>
-          <span className="mono">{current.wind_kt.toFixed(0)} kt</span>
-          <span className="dim">best track</span>
+          {classify && (
+            <span className="mono" style={{ color: catColor(classify.imd_category) }}>
+              CYCLOPS: <strong>{classify.wind_kt.toFixed(0)} kt</strong> ({classify.imd_category})
+            </span>
+          )}
         </div>
       )}
     </section>

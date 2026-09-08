@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useStore } from "../store";
@@ -58,6 +58,17 @@ const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: 
 const BLANK =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=";
 
+function makeRing(lon: number, lat: number, km: number, pts = 48): [number, number][] {
+  const coords: [number, number][] = [];
+  const dLat = km / 111.0;
+  const dLon = km / (111.0 * Math.cos((lat * Math.PI) / 180));
+  for (let i = 0; i <= pts; i++) {
+    const a = (i / pts) * Math.PI * 2;
+    coords.push([lon + Math.cos(a) * dLon, lat + Math.sin(a) * dLat]);
+  }
+  return coords;
+}
+
 export function MapView() {
   const ref = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -67,6 +78,11 @@ export function MapView() {
   // State, not just the ref, so MapStatus re-runs its checks once the map exists.
   const [mapInstance, setMapInstance] = useState<maplibregl.Map | null>(null);
   const followed = useRef<string | null>(null);
+  const railOpen = useStore((s) => s.railOpen);
+  const [autoFollow, setAutoFollow] = useState(true);
+  const autoFollowRef = useRef(true);
+  autoFollowRef.current = autoFollow;
+  const lastCenteredPos = useRef<[number, number] | null>(null);
 
   const observed = useStore((s) => s.observed);
   const nowcast = useStore((s) => s.nowcast);
@@ -75,6 +91,29 @@ export function MapView() {
   const windGrid = useStore((s) => s.windGrid);
   const layers = useStore((s) => s.layers);
   const activeCase = useStore((s) => s.activeCase);
+  const stormClock = useStore((s) => s.stormClock);
+
+  const centerOnStorm = useCallback((lon: number, lat: number, snap = false) => {
+    const m = map.current;
+    if (!m) return;
+    const { width: w, height: h } = m.getContainer().getBoundingClientRect();
+    const px = m.project([lon, lat]);
+    // Clear area: Right rail is 336px when open. Desired horizontal position is centered in open area:
+    const desiredX = (w - (railOpen ? 336 : 0)) / 2;
+    // Desired vertical position: elevated to middle (h * 0.48) so northward forecast cone has full clearance:
+    const desiredY = h * 0.48;
+    const shifted = m.unproject([
+      px.x + (w / 2 - desiredX),
+      px.y + (h / 2 - desiredY),
+    ]);
+
+    if (snap) {
+      m.jumpTo({ center: shifted, zoom: 5.0 });
+    } else {
+      m.easeTo({ center: shifted, duration: 650, essential: true });
+    }
+    lastCenteredPos.current = [lon, lat];
+  }, [railOpen]);
 
   useEffect(() => {
     if (!ref.current || map.current) return;
@@ -89,6 +128,14 @@ export function MapView() {
       minZoom: 2.5,
     });
     m.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+
+    // Allow user to pan and inspect freely without the camera hijacking their view
+    m.on("dragstart", () => {
+      setAutoFollow(false);
+    });
+    m.on("zoomstart", (e) => {
+      if ((e as any).originalEvent) setAutoFollow(false);
+    });
 
     // Superseding an image source's in-flight request makes MapLibre abort it.
     // That is the intended outcome of showing the newest frame, not an error, so
@@ -109,53 +156,55 @@ export function MapView() {
         id: "ir-layer",
         type: "raster",
         source: "ir",
-        // The renderer already carries alpha per pixel, so this should not dim
-        // it a second time — at 0.82 with the old weak ramp the storm was a grey
-        // smudge. Held slightly under 1.0 so the flow layer above still reads
-        // over the brightest cloud, where the strongest winds are.
-        paint: { "raster-opacity": 0.88, "raster-fade-duration": 220 },
+        paint: { "raster-opacity": 0.95, "raster-fade-duration": 180 },
+      });
+
+      m.addSource("rings", { type: "geojson", data: EMPTY });
+      m.addLayer({
+        id: "rings-line",
+        type: "line",
+        source: "rings",
+        paint: { "line-color": "#ffffff", "line-opacity": 0.18, "line-width": 0.8, "line-dasharray": [3, 4] },
       });
 
       m.addSource("cone", { type: "geojson", data: EMPTY });
       m.addLayer({ id: "cone-fill", type: "fill", source: "cone",
-        paint: { "fill-color": "#35C4E8", "fill-opacity": 0.13 } });
+        paint: { "fill-color": "#F2C63D", "fill-opacity": 0.16 } });
       m.addLayer({ id: "cone-line", type: "line", source: "cone",
-        paint: { "line-color": "#35C4E8", "line-opacity": 0.55, "line-width": 1.2 } });
+        paint: { "line-color": "#F2C63D", "line-opacity": 0.65, "line-width": 1.0 } });
 
       m.addSource("observed", { type: "geojson", data: EMPTY });
       m.addLayer({ id: "observed-line", type: "line", source: "observed",
-        paint: { "line-color": "#E4EEF6", "line-width": 2, "line-opacity": 0.9 } });
+        paint: { "line-color": "#3BD16F", "line-width": 2.0, "line-opacity": 0.95 } });
 
-      // Forecast is dashed and a different hue. If a judge cannot tell at a
-      // glance which part of the line is a forecast, the map is misleading.
       m.addSource("forecast", { type: "geojson", data: EMPTY });
       m.addLayer({ id: "forecast-line", type: "line", source: "forecast",
-        paint: { "line-color": "#F2C63D", "line-width": 2.2,
-                 "line-dasharray": [2, 1.6], "line-opacity": 0.95 } });
+        paint: { "line-color": "#F2C63D", "line-width": 1.8,
+                 "line-dasharray": [3, 2], "line-opacity": 0.90 } });
 
       m.addSource("points", { type: "geojson", data: EMPTY });
       m.addLayer({ id: "points-c", type: "circle", source: "points",
         paint: {
-          "circle-radius": ["interpolate", ["linear"], ["get", "kt"], 20, 3, 140, 8.5],
+          "circle-radius": ["interpolate", ["linear"], ["get", "kt"], 20, 3, 140, 7.5],
           "circle-color": ["get", "color"],
-          "circle-stroke-color": "#04090f",
+          "circle-stroke-color": "#080c10",
           "circle-stroke-width": 1,
         } });
 
       m.addSource("fcpoints", { type: "geojson", data: EMPTY });
       m.addLayer({ id: "fcpoints-c", type: "circle", source: "fcpoints",
         paint: {
-          "circle-radius": 4.5, "circle-color": "#04090f",
-          "circle-stroke-color": ["get", "color"], "circle-stroke-width": 2,
+          "circle-radius": 3.0, "circle-color": "#F2C63D",
+          "circle-stroke-color": "#080c10", "circle-stroke-width": 1,
         } });
 
       m.addSource("now", { type: "geojson", data: EMPTY });
       m.addLayer({ id: "now-halo", type: "circle", source: "now",
-        paint: { "circle-radius": 20, "circle-color": ["get", "color"],
-                 "circle-opacity": 0.16 } });
+        paint: { "circle-radius": 11, "circle-color": "transparent",
+                 "circle-stroke-color": "#35C4E8", "circle-stroke-width": 1.4 } });
       m.addLayer({ id: "now-c", type: "circle", source: "now",
-        paint: { "circle-radius": 6, "circle-color": ["get", "color"],
-                 "circle-stroke-color": "#FFFFFF", "circle-stroke-width": 1.5 } });
+        paint: { "circle-radius": 3.5, "circle-color": "#35C4E8",
+                 "circle-stroke-color": "#FFFFFF", "circle-stroke-width": 1.2 } });
 
       m.resize();
       setReady(true);
@@ -192,6 +241,7 @@ export function MapView() {
       if (m.getLayer(id)) m.setLayoutProperty(id, "visibility", on ? "visible" : "none");
     };
     set("ir-layer", layers.satellite);
+    set("rings-line", layers.satellite);
     set("cone-fill", layers.cone);
     set("cone-line", layers.cone);
     set("forecast-line", layers.forecast);
@@ -280,6 +330,18 @@ export function MapView() {
         properties: { color: catColor(classify?.imd_category ?? last.imd_category) },
         geometry: { type: "Point", coordinates: [last.lon, last.lat] },
       });
+
+      const rings = m.getSource("rings") as maplibregl.GeoJSONSource | undefined;
+      if (rings) {
+        rings.setData({
+          type: "FeatureCollection",
+          features: [50, 100, 200].map((km) => ({
+            type: "Feature",
+            properties: { km },
+            geometry: { type: "LineString", coordinates: makeRing(last.lon, last.lat, km) },
+          })),
+        });
+      }
       // Keep the storm framed.
       //
       // Three attempts got here. Recentring on every step jittered. Recentring
@@ -290,33 +352,24 @@ export function MapView() {
       // because a scrub can move the storm further in one step than the margin.
       //
       // So the camera simply follows the subject, eased, and offset left of
-      // centre because the right rail covers roughly a third of the canvas. A
-      // long jump (scrubbing) snaps instead of easing, since a two-second glide
-      // across the basin is worse than an instant cut.
       const target: [number, number] = [last.lon, last.lat];
-      const c = m.getCenter();
-      const drift = Math.hypot(c.lng - target[0], c.lat - target[1]);
       const firstFix = followed.current !== activeCase?.id;
 
-      if (activeCase && (firstFix || drift > 0.25)) {
-        // Shift the look-at point so the storm sits in the clear left-of-centre
-        // area rather than under the rail.
-        const { width: w } = m.getContainer().getBoundingClientRect();
-        const px = m.project(target);
-        px.x += w * 0.16;
-        const shifted = m.unproject(px);
-
+      if (activeCase) {
         if (firstFix) {
           followed.current = activeCase.id;
-          m.easeTo({ center: shifted, zoom: 5.0, duration: 900, essential: true });
-        } else if (drift > 4) {
-          m.jumpTo({ center: shifted });
-        } else {
-          m.easeTo({ center: shifted, duration: 700, essential: true });
+          setAutoFollow(true);
+          centerOnStorm(last.lon, last.lat, true);
+        } else if (autoFollowRef.current) {
+          const prev = lastCenteredPos.current;
+          const stepDrift = prev ? Math.hypot(target[0] - prev[0], target[1] - prev[1]) : 999;
+          if (stepDrift > 0.04) {
+            centerOnStorm(last.lon, last.lat, stepDrift > 4);
+          }
         }
       }
     }
-  }, [observed, classify, ready, activeCase]);
+  }, [observed, classify, ready, activeCase, centerOnStorm]);
 
   // -- forecast and cone -------------------------------------------------
   useEffect(() => {
@@ -366,6 +419,41 @@ export function MapView() {
            aria-label="Cyclone track map with satellite imagery, forecast and uncertainty cone" />
       <WindParticles map={mapInstance} grid={windGrid} visible={layers.wind} />
       <MapStatus map={mapInstance} />
+
+      {/* CIRA / JTWC style operational frame badge */}
+      {classify && (
+        <div className="map-hud-stamp" aria-label="Center analysis and Dvorak classification">
+          <div className="stamp-row">
+            <span className="stamp-tnum">T{classify.t_number.toFixed(1)}</span>
+            <span className="stamp-cat" style={{ color: catColor(classify.imd_category) }}>
+              {classify.imd_category} · {classify.wind_kt.toFixed(0)} kt
+            </span>
+          </div>
+          <div className="stamp-meta">
+            <span>{classify.imd_category_label}</span>
+            <span className="stamp-sep">|</span>
+            <span>{classify.centre.lat.toFixed(1)}°N {classify.centre.lon.toFixed(1)}°E</span>
+            <span className="stamp-sep">|</span>
+            <span>{stormClock ? stormClock.slice(0, 16).replace("T", " ") + "Z" : "MOSDAC"}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Re-center button when user has manually panned */}
+      {!autoFollow && observed.length > 0 && (
+        <button
+          className="map-recenter-btn"
+          onClick={() => {
+            setAutoFollow(true);
+            const latest = observed[observed.length - 1];
+            if (latest) centerOnStorm(latest.lon, latest.lat);
+          }}
+          title="Re-lock camera to follow the cyclone"
+        >
+          <span className="recenter-icon">◎</span>
+          <span>Follow Cyclone</span>
+        </button>
+      )}
     </div>
   );
 }

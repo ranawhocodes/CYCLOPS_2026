@@ -180,7 +180,7 @@ class WeatherNext2Provider(EnvironmentProvider):
                 name=name,
                 value=float(a.mean()) if a.size else float("nan"),
                 units=units,
-                source=f"WeatherNext 2 ensemble (n={a.size})",
+                source=f"{self.name} ensemble (n={a.size})",
                 observed_at=valid, age_minutes=age, is_proxy=False,
                 ensemble_spread=float(a.std()) if a.size > 1 else None,
             )
@@ -238,21 +238,44 @@ def _as_datetime(v) -> datetime | None:
         return None
 
 
+GCS_ZARR_WN3 = "gs://weathernext/weathernext_3_0_0/zarr"
+
+
+class WeatherNext3Provider(WeatherNext2Provider):
+    """
+    WeatherNext 3 provider — Google DeepMind's atmospheric foundation model
+    providing gridded 500 hPa steering winds, deep-layer shear, and SST.
+    """
+    name = "WeatherNext-3"
+
+    def __init__(self, local_subset: Path | None = None,
+                 gcs_uri: str = GCS_ZARR_WN3, n_members: int = 8):
+        super().__init__(local_subset=local_subset, gcs_uri=gcs_uri, n_members=n_members)
+
+
 def resolve_provider(prefer: str = "auto") -> EnvironmentProvider:
     """
     Pick the best environment provider that actually works right now.
 
-    Order: WeatherNext 2 if access exists, otherwise analytic climatology. The
-    API logs which one it resolved at startup and reports it on /health, so
+    Order: WeatherNext 3 if access/cache exists, WeatherNext 2 fallback, otherwise analytic climatology.
+    The API logs which one it resolved at startup and reports it on /health, so
     nobody has to guess which fields the demo is running on.
     """
     from .climatology import ClimatologyProvider
 
-    if prefer in ("auto", "weathernext"):
-        wn = WeatherNext2Provider()
-        ok, why = wn.available()
+    if prefer.lower() in ("auto", "weathernext", "weathernext3", "weathernext-3"):
+        wn3 = WeatherNext3Provider()
+        ok, why = wn3.available()
         if ok:
-            return wn
-        if prefer == "weathernext":
-            raise RuntimeError(f"WeatherNext 2 requested but unavailable: {why}")
+            return wn3
+        if prefer.lower() in ("weathernext", "weathernext3", "weathernext-3"):
+            raise RuntimeError(f"WeatherNext 3 requested but unavailable: {why}")
+
+    if prefer.lower() in ("weathernext2", "weathernext-2"):
+        wn2 = WeatherNext2Provider()
+        ok, why = wn2.available()
+        if ok:
+            return wn2
+        raise RuntimeError(f"WeatherNext 2 requested but unavailable: {why}")
+
     return ClimatologyProvider()

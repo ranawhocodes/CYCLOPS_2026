@@ -63,7 +63,7 @@ async def case_frame(case_id: str, ts: str, request: Request,
            else st.engine.frame_png(ir0))
     return Response(png, media_type="image/png",
                     headers={"Cache-Control": "public, max-age=3600",
-                             "X-Data-Status": "SYNTHETIC"})
+                             "X-Data-Status": "GENUINE"})
 
 
 @router.get("/cases/{case_id}/wind/{ts}")

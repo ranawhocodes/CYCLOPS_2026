@@ -45,19 +45,14 @@ interface Particle {
   life: number;
 }
 
-const PARTICLE_COUNT = 3200;
-// Higher = longer trails. At 0.90 the streaks were too short to read as motion;
-// a cyclone's signature is the ARC a parcel traces, and an arc needs length.
-const TRAIL_FADE = 0.955;
+const PARTICLE_COUNT = 1400;
+// Restrained trail fade: short, crisp physical streamlines without fog or bloom
+const TRAIL_FADE = 0.910;
 const SPEED_SCALE = 0.00085; // degrees per m/s per frame
 
-// Particles are spawned with a bias toward the core rather than uniformly over
-// the box. In a modified-Rankine vortex the wind falls off as r^-0.55 outside
-// the radius of maximum wind, so a uniform spawn puts most particles in the
-// slow outer field where they drift almost straight and the rotation is
-// invisible. Concentrating them where the flow actually curves is what makes
-// the circulation legible.
-const CORE_BIAS = 1.9;
+// Balanced spawn distribution: shows the full cyclonic vortex and outer inflow
+// without creating an artificial glowing mass over the core.
+const CORE_BIAS = 1.35;
 
 export function WindParticles({
   map,
@@ -197,28 +192,40 @@ export function WindParticles({
         const b = map.project([nextLon, nextLat]);
 
         if (a.x > -50 && a.x < w + 50 && a.y > -50 && a.y < h + 50) {
-          const speed = Math.hypot(u, v);
-          const t = Math.min(1, speed / maxSpeed);
-          // Cyan through amber to red, matching the intensity ramp used
-          // everywhere else in the console.
-          const r = Math.round(53 + t * 199);
-          const g = Math.round(196 - t * 132);
-          const bl = Math.round(232 - t * 158);
-          // Fade in and out over the particle's life so streaks appear and
-          // vanish smoothly instead of popping.
-          const lifeFade = Math.min(1, Math.min(p.age, p.life - p.age) / 12);
-          // Lifted so streaks stay legible over bright cloud tops, which is
-          // exactly where the fastest air is and where the rotation most needs
-          // to be visible.
-          ctx.globalAlpha = (0.45 + 0.55 * t) * lifeFade;
-          ctx.strokeStyle = `rgb(${r},${g},${bl})`;
-          // Fast air draws heavier, so the eyewall reads as the strongest part
-          // of the field rather than every streak weighing the same.
-          ctx.lineWidth = 1.0 + 1.7 * t;
+          const speedMs = Math.hypot(u, v);
+          const t = Math.min(1, speedMs / maxSpeed);
+          const speedKt = speedMs * 1.94384;
+
+          // Color strictly mapped to physical wind velocity (IMD Beaufort scale)
+          // Calm outer flow -> Gale -> Storm -> Violent Eyewall Core
+          let strokeR = 100, strokeG = 132, strokeB = 152;
+          if (speedKt >= 64) {
+            // Hurricane/VSCS force: Operational red
+            strokeR = 232; strokeG = 64; strokeB = 74;
+          } else if (speedKt >= 48) {
+            // Severe / Storm force: Operational amber
+            strokeR = 244; strokeG = 180; strokeB = 26;
+          } else if (speedKt >= 34) {
+            // Cyclonic storm: Operational green
+            strokeR = 46; strokeG = 184; strokeB = 114;
+          } else if (speedKt >= 17) {
+            // Depression: Operational cyan
+            strokeR = 53; strokeG = 196; strokeB = 232;
+          }
+
+          // Restrained lifecycle fade: smooth entrance and decay without sudden popping
+          const lifeFade = Math.min(1, Math.min(p.age, p.life - p.age) / 10);
+
+          // Thin, restrained opacity (0.18 to 0.50 max) so satellite cloud tops stay visible
+          ctx.globalAlpha = (0.18 + 0.32 * t) * lifeFade;
+          ctx.strokeStyle = `rgb(${strokeR},${strokeG},${strokeB})`;
+          // Hairline vector stroke (0.75px to 1.10px max) per earth.nullschool.net spec
+          ctx.lineWidth = 0.75 + 0.35 * t;
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
           ctx.lineTo(b.x, b.y);
           ctx.stroke();
+
         }
 
         p.lon = nextLon;

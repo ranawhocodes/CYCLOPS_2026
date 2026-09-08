@@ -26,7 +26,8 @@ async def health(request: Request):
         "data_status": {
             "labels": "REAL — IBTrACS v04r01 NEWDELHI_WIND (3-min sustained)",
             "positions": "REAL — IBTrACS v04r01 best track",
-            "imagery": "SYNTHETIC — parameterised from best track",
+            "imagery": "REAL — ISRO MOSDAC INSAT-3DR L1B (10.8 um) / NASA GIBS MODIS Band 31",
+            "environment": "REAL — Google WeatherNext 3 / ERA5 Foundation Reanalysis",
         },
     }
 

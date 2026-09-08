@@ -16,7 +16,10 @@ from __future__ import annotations
 import io
 
 import numpy as np
-import torch
+try:
+    import torch
+except ImportError:
+    torch = None
 
 
 class IntensityCAM:

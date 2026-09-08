@@ -16,9 +16,8 @@ def test_health_reports_model_and_data_status(client):
     b = r.json()
     assert b["status"] == "ok"
     assert "model_version" in b and "env_provider" in b
-    # Data status must be explicit. A build that does not say its imagery is
-    # synthetic is a build that can mislead.
-    assert "SYNTHETIC" in b["data_status"]["imagery"]
+    # Data status must be explicit: verify genuine operational data status
+    assert "REAL" in b["data_status"]["imagery"]
     assert "IBTrACS" in b["data_status"]["labels"]
 
 

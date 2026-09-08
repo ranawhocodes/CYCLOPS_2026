@@ -44,8 +44,10 @@ export function ProvenancePanel() {
                 <td className="prov-src">
                   {r.src}
                   {r.extra && <em> · {r.extra}</em>}
-                  {(r.synth || r.proxy) && (
+                  {(r.synth || r.proxy) ? (
                     <span className="prov-flag">{r.synth ? "synthetic" : "proxy"}</span>
+                  ) : (
+                    r.src && <span className="prov-flag-genuine">genuine</span>
                   )}
                   {r.at && <div className="prov-at">{fmtUTC(r.at)}</div>}
                 </td>

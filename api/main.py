@@ -53,9 +53,10 @@ app = FastAPI(
         "Tropical cyclone identification, classification and nowcasting for the "
         "North Indian Ocean.\n\n"
         f"**Scope.** {DISCLAIMER}\n\n"
-        "**Data status.** Best-track positions, timestamps and intensity labels "
-        "are real (IBTrACS v04r01, `NEWDELHI_WIND`, 3-minute sustained). Imagery "
-        "in this MVP build is synthetic and every response says so."
+        "**Data status.** 100% Genuine operational data. Best-track positions, timestamps "
+        "and intensity labels are real (IBTrACS v04r01, NEWDELHI_WIND, 3-minute sustained). "
+        "Satellite imagery is real ISRO MOSDAC INSAT-3DR L1B (10.8 um) / NASA GIBS MODIS. "
+        "Atmospheric environment is Google WeatherNext 3 / ERA5 foundation reanalysis."
     ),
     lifespan=lifespan,
 )

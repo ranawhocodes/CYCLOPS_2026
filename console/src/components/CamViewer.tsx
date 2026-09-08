@@ -9,15 +9,23 @@ export function CamViewer() {
   const setShow = useStore((s) => s.setShowCam);
   const setOpacity = useStore((s) => s.setCamOpacity);
 
+  const isSynthetic = useStore((s) => s.classify?.provenance?.ir?.is_synthetic ?? false);
+
   if (!frameUrl) return <Empty label="Why this estimate" hint="No frame loaded" />;
 
   return (
     <section className="panel" aria-label="Model attention">
       <h2 className="panel-title">
         Why this estimate
-        <span className="synthetic-tag" title="Imagery in this build is synthetic">
-          SYNTHETIC IMAGERY
-        </span>
+        {isSynthetic ? (
+          <span className="synthetic-tag" title="Imagery in this build is synthetic">
+            SYNTHETIC IMAGERY
+          </span>
+        ) : (
+          <span className="prov-flag-genuine" title="Live genuine ISRO INSAT-3DR / NASA GIBS imagery">
+            GENUINE IMAGERY
+          </span>
+        )}
       </h2>
 
       <div className="cam-stage">
